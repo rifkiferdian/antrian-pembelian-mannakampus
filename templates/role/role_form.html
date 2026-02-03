@@ -27,12 +27,16 @@
                         },
                         colors: {
                             brand: {
-                                50: "#f6f1f4",
-                                100: "#efe2ea",
-                                300: "#d1a0d6",
-                                500: "#8c149c",
-                                600: "#800080",
-                                700: "#571a3f",
+                                50: "#fff7ed",
+                                100: "#ffedd5",
+                                200: "#fed7aa",
+                                300: "#fdba74",
+                                400: "#fb923c",
+                                500: "#f57c00",
+                                600: "#e56f00",
+                                700: "#c25700",
+                                800: "#9a4200",
+                                900: "#7a3200",
                             },
                         },
                     },
@@ -46,10 +50,10 @@
 
         <style>
             main a {
-                color: #800080;
+                color: #f97316;
             }
             main a:hover {
-                color: #8c149c;
+                color: #ea580c;
             }
         </style>
 
@@ -89,7 +93,7 @@
                                     <div class="space-y-2">
                                         <label class="text-xs font-semibold uppercase tracking-wider text-slate-500">Select All</label>
                                         <label class="flex items-center gap-2 text-sm text-slate-600">
-                                            <input class="h-4 w-4 rounded border-slate-300 text-[#800080] focus:ring-brand-500" type="checkbox" id="switch-select-all">
+                                            <input class="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-brand-500" type="checkbox" id="switch-select-all">
                                             Enables/Disables all Permissions for this role
                                         </label>
                                     </div>
@@ -115,14 +119,14 @@
                                             <div id="{{ $collapseID }}" class="border-t border-slate-200 px-4 py-4">
                                                 <div class="flex items-center justify-between">
                                                     <label class="flex items-center gap-2 text-sm text-slate-600">
-                                                        <input class="h-4 w-4 rounded border-slate-300 text-[#800080] focus:ring-brand-500" type="checkbox" id="group_{{ $group.Key }}">
+                                                        <input class="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-brand-500" type="checkbox" id="group_{{ $group.Key }}">
                                                         Select all
                                                     </label>
                                                 </div>
                                                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                                     {{ range $permIndex, $perm := $group.Permissions }}
                                                     <label class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-                                                        <input class="h-4 w-4 rounded border-slate-300 text-[#800080] focus:ring-brand-500" type="checkbox" id="perm_{{ $perm.ID }}" name="permissions" value="{{ $perm.ID }}" data-permission-name="{{ $perm.Name }}">
+                                                        <input class="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-brand-500" type="checkbox" id="perm_{{ $perm.ID }}" name="permissions" value="{{ $perm.ID }}" data-permission-name="{{ $perm.Name }}">
                                                         {{ $perm.Name }}
                                                     </label>
                                                     {{ end }}
@@ -138,7 +142,7 @@
 
                             <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
                                 <a href="/role" class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Cancel</a>
-                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-[#800080] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8c149c]">
+                                <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600">
                                     <i class="bx bx-save text-base"></i>
                                     Save
                                 </button>
