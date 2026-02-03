@@ -3,11 +3,11 @@
     <div class="flex items-center justify-between px-2 pb-5">
         <div class="flex items-center gap-3">
             <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 text-xs font-semibold uppercase tracking-widest text-white">
-                STIE
+                MK1
             </div>
             <div>
-                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Mail Approval</p>
-                <p class="text-sm font-semibold text-slate-800">Admin Panel</p>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Antrian APP</p>
+                <p class="text-sm font-semibold text-slate-800">Manna Kampus</p>
             </div>
         </div>
         <button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 lg:hidden" data-sidebar-toggle aria-label="Close sidebar">
@@ -29,12 +29,7 @@
                     <span>Workflow Admin</span>
                 </a>
             </li> -->
-            <li>
-                <a href="#" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800 sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px]">
-                    <i class="bx bx-file text-xl"></i>
-                    <span>Document Types</span>
-                </a>
-            </li>
+
             {{ if index .Permissions "role_management_access" }}
             <li>
                 <a href="{{ baseURL "/role" }}" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px] {{ if or (eq .Page "role") (eq .Page "roleForm") (eq .Page "roleEdit") }}bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-200{{ else }}text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800{{ end }}">
@@ -52,7 +47,7 @@
             </li>
             {{ end }}
             <li>
-                <a href="#" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800 sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px]">
+                <a href="{{ baseURL "/reports" }}" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px] {{ if eq .Page "reports" }}bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-200{{ else }}text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800{{ end }}">
                     <i class="bx bx-bar-chart-square text-xl"></i>
                     <span>Reports</span>
                 </a>

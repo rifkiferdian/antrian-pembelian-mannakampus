@@ -11,6 +11,8 @@
                 <span class="truncate text-sm font-semibold text-slate-800">
                     {{ if eq .Page "dashboard" }}
                         Dashboard
+                    {{ else if eq .Page "reports" }}
+                        Reports
                     {{ else if eq .Page "user" }}
                         Users
                     {{ else if eq .Page "role" }}
