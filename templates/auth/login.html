@@ -9,7 +9,7 @@
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <script>
             window.tailwind = window.tailwind || {};
@@ -17,25 +17,26 @@
                 theme: {
                     extend: {
                         fontFamily: {
-                            display: ["Space Grotesk", "ui-sans-serif", "system-ui"],
-                            body: ["Manrope", "ui-sans-serif", "system-ui"],
+                            display: ["Poppins", "ui-sans-serif", "system-ui"],
+                            body: ["Poppins", "ui-sans-serif", "system-ui"],
                         },
                         colors: {
                             brand: {
-                                50: "#f6f3ff",
-                                100: "#e9e1ff",
-                                200: "#d2c1ff",
-                                300: "#b49bff",
-                                400: "#9567ff",
-                                500: "#7b35ff",
-                                600: "#6c20f2",
-                                700: "#5718c1",
-                                800: "#40128f",
-                                900: "#2d0d65",
+                                50: "#fff7ed",
+                                100: "#ffedd5",
+                                200: "#fed7aa",
+                                300: "#fdba74",
+                                400: "#fb923c",
+                                500: "#f57c00",
+                                600: "#e56f00",
+                                700: "#c25700",
+                                800: "#9a4200",
+                                900: "#7a3200",
                             },
                         },
                         boxShadow: {
-                            glow: "0 30px 80px -40px rgba(90, 24, 154, 0.6)",
+                            card: "0 20px 45px -30px rgba(15, 23, 42, 0.4)",
+                            soft: "0 10px 20px -12px rgba(245, 124, 0, 0.5)",
                         },
                     },
                 },
@@ -44,109 +45,84 @@
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
 
-    <body class="min-h-screen bg-[#f3f5fb] font-body text-slate-900">
-        <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-10">
-            <div class="w-full max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-[0_40px_120px_-60px_rgba(60,16,110,0.7)]">
-                <div class="grid gap-0 md:grid-cols-2">
-                    <section class="relative hidden min-h-[620px] flex-col justify-between overflow-hidden bg-[#6d2bd4] text-white md:flex">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_60%)]"></div>
-                        <div class="absolute inset-0 opacity-30" style="background-image: url('https://stieww.ac.id/assets/uploads/news-31.jpeg'); background-size: cover; background-position: center;"></div>
-                        <div class="absolute inset-0 bg-gradient-to-b from-[#7b35ff]/70 via-[#5a18c5]/85 to-[#2d0d65]"></div>
-
-                        <div class="relative z-10 p-10">
-                            <div class="flex items-center gap-3">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.25)]">
-                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                        <path d="M4 7.5l8-4 8 4-8 4-8-4Z"></path>
-                                        <path d="M4 7.5v6l8 4 8-4v-6"></path>
-                                        <path d="M12 11.5v8"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] uppercase tracking-[0.35em] text-white/70">STIE Widya Wiwaha</p>
-                                    <p class="text-lg font-display font-semibold">Mail Approval</p>
-                                </div>
-                            </div>
+    <body class="min-h-screen bg-[#f7f4f1] font-body text-slate-900">
+        <div class="min-h-screen flex flex-col">
+            <header class="w-full">
+                <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-5 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-orange-500">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">Manna Kampus</p>
                         </div>
-
-                        <div class="relative z-10 px-10 pb-16">
-                            <h1 class="text-[40px] font-display font-semibold leading-[1.15] tracking-tight">
-                                <span class="block">Internal Document</span>
-                                <span class="block">Management</span>
-                                <span class="block">System</span>
-                            </h1>
-                            <p class="mt-4 max-w-md text-sm leading-relaxed text-white/75">
-                                Streamline your academic workflows, manage institutional approvals, and access your repository in one secure location.
-                            </p>
-                            <div class="mt-10 flex items-center gap-3">
-                                <span class="h-1.5 w-10 rounded-full bg-amber-300"></span>
-                                <span class="h-1.5 w-6 rounded-full bg-white/30"></span>
-                                <span class="h-1.5 w-6 rounded-full bg-white/30"></span>
-                            </div>
-                        </div>
-
-                        <div class="relative z-10 px-10 pb-10 text-xs uppercase tracking-[0.2em] text-white/60">
-                            Empowering Higher Education Excellence
-                        </div>
-                    </section>
-
-                    <section class="flex flex-col justify-center px-6 py-12 sm:px-10 lg:px-12">
-                        <div class="mx-auto w-full max-w-md">
-                            <div class="mb-8">
-                                <h2 class="text-3xl font-display font-semibold text-slate-900">Welcome back</h2>
-                                <p class="mt-2 text-sm text-slate-500">Please enter your details to sign in.</p>
-                            </div>
-
-                            {{ if .Error }}
-                                <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                                    {{ .Error }}
-                                </div>
-                            {{ end }}
-
-                            <form action="/login" method="post" class="space-y-5">
-                                <div>
-                                    <label for="username" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Email or Username</label>
-                                    <input id="username" name="username" type="text" placeholder="Enter your email or username" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100" />
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center justify-between">
-                                        <label for="password" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Password</label>
-                                        <!-- <a href="#" class="text-xs font-semibold text-[#800080] hover:text-[#8c149c]">Forgot Password?</a> -->
-                                    </div>
-                                    <div class="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100">
-                                        <input id="password" name="password" type="password" placeholder="Enter your password" class="w-full bg-transparent py-3 text-sm outline-none" />
-                                        <button type="button" class="rounded-lg px-2 py-1 text-slate-400 transition hover:text-[#800080]" aria-label="Toggle password visibility" data-password-toggle>
-                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
-                                                <circle cx="12" cy="12" r="3.5"></circle>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
-                                    <label class="flex items-center gap-2">
-                                        <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#800080] focus:ring-brand-500" />
-                                        <span>I'm not a robot</span>
-                                    </label>
-                                    <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                        <rect x="4" y="11" width="16" height="9" rx="2"></rect>
-                                    </svg>
-                                </div>
-
-                                <button type="submit" class="w-full rounded-xl bg-[#800080] py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-[#8c149c]">Login to System</button>
-                            </form>
-
-                            <div class="mt-10 border-t border-slate-200 pt-6 text-center text-xs text-slate-400">
-                                &copy; <script>document.write(new Date().getFullYear())</script> STIE Institution. Privacy Policy | Terms of Service
-                            </div>
-                        </div>
-                    </section>
+                    </div>
+                    <a href="#" class="rounded-md bg-orange-500 px-4 py-1.5 text-xs font-semibold text-white shadow-soft transition hover:bg-orange-600">Help</a>
                 </div>
-            </div>
+                <div class="mx-auto w-full max-w-5xl border-t border-slate-200/70"></div>
+            </header>
+
+            <main class="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+                <div class="w-full max-w-sm">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-card">
+                        <div class="text-center">
+                            <div class="flex justify-center">
+                                <span class="text-orange-500">
+                                    <svg class="h-14 w-14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                            <h1 class="mt-4 text-lg font-display font-semibold text-slate-900">Supplier Queue Portal</h1>
+                            <p class="mt-1 text-[11px] text-slate-500">Enter your credentials to manage your counter</p>
+                        </div>
+
+                        {{ if .Error }}
+                            <div class="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                                {{ .Error }}
+                            </div>
+                        {{ end }}
+
+                        <form action="/login" method="post" class="mt-6 space-y-3.5">
+                            <div>
+                                <label for="username" class="text-xs font-medium text-slate-700">Username/Email</label>
+                                <input id="username" name="username" type="text" placeholder="Enter your username or email" class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-100" />
+                            </div>
+
+                            <div>
+                                <label for="password" class="text-xs font-medium text-slate-700">Password</label>
+                                <div class="mt-2 flex items-center rounded-lg border border-slate-200 bg-white px-3 shadow-sm focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-100">
+                                    <input id="password" name="password" type="password" placeholder="Enter your password" class="w-full bg-transparent py-2.5 text-sm outline-none" />
+                                    <button type="button" class="rounded-md px-2 py-1 text-slate-400 transition hover:text-orange-600" aria-label="Toggle password visibility" data-password-toggle>
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                                            <circle cx="12" cy="12" r="3.5"></circle>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            
+                            <br>
+                            <button type="submit" class="mt-2 w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-orange-600">Login to System</button>
+                        </form>
+
+                        <div class="mt-5 flex items-center justify-between text-xs text-slate-400">
+                            <a href="#" class="transition hover:text-orange-600">Forgot password?</a>
+                            <span class="text-slate-300">|</span>
+                            <a href="#" class="transition hover:text-orange-600">System Status</a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="py-8 text-center text-xs text-slate-400">
+                &copy; <script>document.write(new Date().getFullYear())</script> Manna Kampus Retail. All rights reserved.
+            </footer>
         </div>
+
         <script>
             const toggle = document.querySelector("[data-password-toggle]");
             const passwordInput = document.querySelector("#password");
