@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"stok-hadiah/repositories"
 	"stok-hadiah/services"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,6 +39,12 @@ func CounterStore(c *gin.Context) {
 
 	if err := c.ShouldBind(&form); err != nil {
 		renderCounterPage(c, counterService, "Form tidak lengkap")
+		return
+	}
+
+	allowedStoreIDs := getSessionStoreIDs(c)
+	if !containsInt(allowedStoreIDs, form.StoreID) {
+		renderCounterPage(c, counterService, "Store tidak sesuai akses")
 		return
 	}
 
@@ -77,6 +85,22 @@ func CounterUpdate(c *gin.Context) {
 		return
 	}
 
+	allowedStoreIDs := getSessionStoreIDs(c)
+	if !containsInt(allowedStoreIDs, form.StoreID) {
+		renderCounterPage(c, counterService, "Store tidak sesuai akses")
+		return
+	}
+
+	exists, err := counterRepo.ExistsInStores(form.ID, allowedStoreIDs)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !exists {
+		c.String(http.StatusForbidden, "akses counter ditolak")
+		return
+	}
+
 	input := models.CounterUpdateInput{
 		ID:           form.ID,
 		StoreID:      form.StoreID,
@@ -105,6 +129,17 @@ func CounterDelete(c *gin.Context) {
 	counterRepo := &repositories.CounterRepository{DB: config.DB}
 	counterService := &services.CounterService{Repo: counterRepo}
 
+	allowedStoreIDs := getSessionStoreIDs(c)
+	exists, err := counterRepo.ExistsInStores(id, allowedStoreIDs)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !exists {
+		c.String(http.StatusForbidden, "akses counter ditolak")
+		return
+	}
+
 	if err := counterService.DeleteCounter(id); err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -114,14 +149,15 @@ func CounterDelete(c *gin.Context) {
 }
 
 func renderCounterPage(c *gin.Context, counterService *services.CounterService, message string) {
-	counters, err := counterService.GetCounters()
+	storeIDs := getSessionStoreIDs(c)
+	counters, err := counterService.GetCountersByStoreIDs(storeIDs)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	storeRepo := &repositories.StoreRepository{DB: config.DB}
-	stores, err := storeRepo.GetAll()
+	stores, err := storeRepo.GetByIDs(storeIDs)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -146,4 +182,71 @@ func parseActive(val string) bool {
 	default:
 		return true
 	}
+}
+
+func getSessionStoreIDs(c *gin.Context) []int {
+	sess := sessions.Default(c)
+	user := sess.Get("user")
+	var rawStore string
+
+	switch val := user.(type) {
+	case models.SessionUser:
+		rawStore = val.StoreID
+	case map[string]interface{}:
+		rawStore = extractStoreString(val)
+	case gin.H:
+		rawStore = extractStoreString(map[string]interface{}(val))
+	}
+
+	return parseStoreIDs(rawStore)
+}
+
+func extractStoreString(data map[string]interface{}) string {
+	if v, ok := data["store_id"]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	if v, ok := data["StoreID"]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
+func parseStoreIDs(raw string) []int {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return []int{}
+	}
+
+	var ids []int
+	if strings.HasPrefix(raw, "[") {
+		if err := json.Unmarshal([]byte(raw), &ids); err == nil {
+			return ids
+		}
+	}
+
+	parts := strings.Split(raw, ",")
+	for _, part := range parts {
+		part = strings.TrimSpace(strings.Trim(part, "[]"))
+		if part == "" {
+			continue
+		}
+		if id, err := strconv.Atoi(part); err == nil {
+			ids = append(ids, id)
+		}
+	}
+
+	return ids
+}
+
+func containsInt(values []int, target int) bool {
+	for _, v := range values {
+		if v == target {
+			return true
+		}
+	}
+	return false
 }

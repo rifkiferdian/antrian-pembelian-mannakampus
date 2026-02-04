@@ -16,6 +16,13 @@ func (s *CounterService) GetCounters() ([]models.Counter, error) {
 	return s.Repo.GetAll()
 }
 
+func (s *CounterService) GetCountersByStoreIDs(storeIDs []int) ([]models.Counter, error) {
+	if len(storeIDs) == 0 {
+		return []models.Counter{}, nil
+	}
+	return s.Repo.GetByStoreIDs(storeIDs)
+}
+
 func (s *CounterService) CreateCounter(input models.CounterCreateInput) error {
 	counterCode := strings.TrimSpace(input.CounterCode)
 	counterName := strings.TrimSpace(input.CounterName)
