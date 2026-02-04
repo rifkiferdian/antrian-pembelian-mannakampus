@@ -17,7 +17,7 @@ import (
 func GuestQueuePage(c *gin.Context) {
 	storeRepo := &repositories.StoreRepository{DB: config.DB}
 
-	storeID, _ := strconv.Atoi(strings.TrimSpace(c.Query("store_id")))
+	storeID, _ := strconv.Atoi(strings.TrimSpace(c.Param("store_id")))
 	var (
 		store models.Store
 		err   error
@@ -59,6 +59,7 @@ func GuestQueuePage(c *gin.Context) {
 	c.HTML(http.StatusOK, "guest.html", gin.H{
 		"Title":    "Cetak Antrian",
 		"Store":    store,
+		"StoreID":  store.StoreID,
 		"Counters": counters,
 		"Date":     today.Format("02 Jan 2006"),
 	})
