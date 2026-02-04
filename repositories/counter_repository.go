@@ -78,6 +78,64 @@ func (r *CounterRepository) GetAll() ([]models.Counter, error) {
 	return counters, rows.Err()
 }
 
+// GetByID mengambil data counter berdasarkan ID.
+func (r *CounterRepository) GetByID(id int) (models.Counter, error) {
+	var (
+		counter   models.Counter
+		isActive  int
+		createdAt sql.NullTime
+	)
+
+	err := r.DB.QueryRow(`
+		SELECT 
+			c.id,
+			c.store_id,
+			COALESCE(s.store_name, '') AS store_name,
+			c.counter_code,
+			c.counter_name,
+			c.ticket_prefix,
+			c.is_active,
+			c.created_at
+		FROM counters c
+		LEFT JOIN stores s ON s.store_id = c.store_id
+		WHERE c.id = ?
+		LIMIT 1
+	`, id).Scan(
+		&counter.ID,
+		&counter.StoreID,
+		&counter.StoreName,
+		&counter.CounterCode,
+		&counter.CounterName,
+		&counter.TicketPrefix,
+		&isActive,
+		&createdAt,
+	)
+	if err != nil {
+		return models.Counter{}, err
+	}
+
+	counter.IsActive = isActive == 1
+	if counter.IsActive {
+		counter.StatusLabel = "Aktif"
+	} else {
+		counter.StatusLabel = "Non Aktif"
+	}
+
+	if createdAt.Valid {
+		counter.CreatedAt = createdAt.Time.Format("2006-01-02 15:04:05")
+		counter.CreatedAtDisplay = createdAt.Time.Format("02 Jan 2006 15:04:05")
+	} else {
+		counter.CreatedAt = "-"
+		counter.CreatedAtDisplay = "-"
+	}
+
+	if counter.StoreName == "" {
+		counter.StoreName = "-"
+	}
+
+	return counter, nil
+}
+
 // GetByStoreIDs mengambil data counter berdasarkan store_id tertentu.
 func (r *CounterRepository) GetByStoreIDs(storeIDs []int) ([]models.Counter, error) {
 	if len(storeIDs) == 0 {

@@ -15,6 +15,9 @@ func RegisterWebRoutes(r *gin.Engine) {
 	r.POST("/login", controllers.LoginPost)
 	r.POST("/register", controllers.CreateUser)
 	r.GET("/logout", controllers.Logout)
+	r.GET("/guest", controllers.GuestQueuePage)
+	r.POST("/guest/ticket", controllers.GuestQueuePrint)
+	r.GET("/guest/ticket/:id", controllers.GuestTicketShow)
 
 	auth := r.Group("/")
 	auth.Use(middleware.AuthRequired(), middleware.PermissionContext())

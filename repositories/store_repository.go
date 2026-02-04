@@ -10,6 +10,39 @@ type StoreRepository struct {
 	DB *sql.DB
 }
 
+// GetFirstActive mengambil store aktif pertama.
+func (r *StoreRepository) GetFirstActive() (models.Store, error) {
+	var store models.Store
+	err := r.DB.QueryRow(`
+		SELECT store_id, store_name
+		FROM stores
+		WHERE is_active = 1
+		ORDER BY store_id ASC
+		LIMIT 1
+	`).Scan(&store.StoreID, &store.StoreName)
+	if err != nil {
+		return models.Store{}, err
+	}
+
+	return store, nil
+}
+
+// GetByID mengambil store berdasarkan ID.
+func (r *StoreRepository) GetByID(id int) (models.Store, error) {
+	var store models.Store
+	err := r.DB.QueryRow(`
+		SELECT store_id, store_name
+		FROM stores
+		WHERE store_id = ?
+		LIMIT 1
+	`, id).Scan(&store.StoreID, &store.StoreName)
+	if err != nil {
+		return models.Store{}, err
+	}
+
+	return store, nil
+}
+
 // GetAll mengambil seluruh data store.
 func (r *StoreRepository) GetAll() ([]models.Store, error) {
 	rows, err := r.DB.Query(`
