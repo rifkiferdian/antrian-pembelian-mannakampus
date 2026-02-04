@@ -47,6 +47,12 @@
             </li>
             {{ end }}
             <li>
+                <a href="{{ baseURL "/counters" }}" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px] {{ if eq .Page "counters" }}bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-200{{ else }}text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800{{ end }}">
+                    <i class="bx bx-cog text-xl"></i>
+                    <span>Setting Counters</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ baseURL "/reports" }}" class="flex items-center gap-3 rounded-2xl px-3 py-2 text-[14px] font-semibold sm:gap-4 sm:px-4 sm:py-2.5 sm:text-[15px] {{ if eq .Page "reports" }}bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-200{{ else }}text-slate-600 transition hover:bg-slate-100/70 hover:text-slate-800{{ end }}">
                     <i class="bx bx-bar-chart-square text-xl"></i>
                     <span>Reports</span>

@@ -32,5 +32,10 @@ func RegisterWebRoutes(r *gin.Engine) {
 		auth.POST("/role", middleware.RequirePermission("role_create"), controllers.RoleStore)
 		auth.POST("/role/update", middleware.RequirePermission("role_edit"), controllers.RoleUpdate)
 		auth.GET("/role/delete/:id", middleware.RequirePermission("role_delete"), controllers.RoleDelete)
+
+		auth.GET("/counters", controllers.CounterIndex)
+		auth.POST("/counters", controllers.CounterStore)
+		auth.POST("/counters/update", controllers.CounterUpdate)
+		auth.GET("/counters/delete/:id", controllers.CounterDelete)
 	}
 }

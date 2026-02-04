@@ -2,14 +2,14 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>{{ .code_error }} Error | Mail Approval</title>
+        <title>{{ .code_error }} Error | Stok Hadiah Manna Kampus</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Internal Document Management System" name="description" />
         <link rel="shortcut icon" href="/assets/images/favicon.ico">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <script>
             window.tailwind = window.tailwind || {};
@@ -17,17 +17,26 @@
                 theme: {
                     extend: {
                         fontFamily: {
-                            display: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui'],
+                            display: ["Poppins", "ui-sans-serif", "system-ui"],
+                            body: ["Poppins", "ui-sans-serif", "system-ui"],
                         },
                         colors: {
                             brand: {
-                                50: '#f6f1f4',
-                                100: '#efe2ea',
-                                300: '#d1a0d6',
-                                500: '#8c149c',
-                                600: '#800080',
-                                700: '#571a3f',
+                                50: "#fff7ed",
+                                100: "#ffedd5",
+                                200: "#fed7aa",
+                                300: "#fdba74",
+                                400: "#fb923c",
+                                500: "#f57c00",
+                                600: "#e56f00",
+                                700: "#c25700",
+                                800: "#9a4200",
+                                900: "#7a3200",
                             },
+                        },
+                        boxShadow: {
+                            card: "0 20px 45px -30px rgba(15, 23, 42, 0.4)",
+                            soft: "0 10px 20px -12px rgba(245, 124, 0, 0.5)",
                         },
                     },
                 },
@@ -38,24 +47,24 @@
         <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
     </head>
 
-    <body class="min-h-screen bg-slate-100 font-display text-slate-900">
+    <body class="min-h-screen bg-[#f7f4f1] font-body text-slate-900">
         <div class="flex min-h-screen items-center justify-center px-4 py-10">
-            <div class="w-full max-w-4xl overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl">
+            <div class="w-full max-w-4xl overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-card">
                 <div class="grid gap-0 md:grid-cols-2">
-                    <div class="flex flex-col justify-between bg-[#800080] px-8 py-10 text-white">
+                    <div class="flex flex-col justify-between bg-orange-500 px-8 py-10 text-white">
                         <div>
                             <p class="text-xs uppercase tracking-[0.4em] text-white/70">System Error</p>
                             <h1 class="mt-3 text-4xl font-semibold">{{ .code_error }}</h1>
                             <p class="mt-3 text-sm text-white/80">{{ .error }}</p>
                         </div>
-                        <a class="mt-8 inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[#800080] transition hover:bg-brand-50" href="/dashboard">
+                        <a class="mt-8 inline-flex w-fit items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-orange-600 shadow-soft transition hover:bg-brand-50" href="/dashboard">
                             <i class="bx bx-home"></i>
                             Back to Dashboard
                         </a>
                     </div>
-                    <div class="flex items-center justify-center bg-slate-50 p-8">
+                    <div class="flex items-center justify-center bg-white p-8">
                         <div class="text-center">
-                            <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white text-[#800080] shadow-sm">
+                            <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-brand-50 text-orange-500 shadow-sm">
                                 <i class="bx bx-buoy text-4xl"></i>
                             </div>
                             <p class="mt-6 text-sm text-slate-500">Something went wrong. Please try again.</p>
