@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"stok-hadiah/models"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,7 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 			c.counter_code,
 			c.ticket_prefix,
 			COALESCE(sc.category_name, '') AS category_name,
+			COALESCE(GROUP_CONCAT(DISTINCT u.name ORDER BY u.name SEPARATOR '||'), '') AS staff_names,
 			(
 				SELECT COUNT(*)
 				FROM queue_tickets qt
@@ -29,7 +31,10 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 			) AS waiting_count
 		FROM counters c
 		LEFT JOIN service_categories sc ON sc.ticket_prefix = c.ticket_prefix
+		LEFT JOIN counter_staffs cs ON cs.counter_id = c.id AND cs.status = 'ACTIVE'
+		LEFT JOIN users u ON u.id = cs.user_id
 		WHERE c.store_id = ? AND c.is_active = 1
+		GROUP BY c.id, c.counter_name, c.counter_code, c.ticket_prefix, sc.category_name
 		ORDER BY c.id ASC
 	`, ticketDate.Format("2006-01-02"), storeID)
 	if err != nil {
@@ -40,18 +45,23 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 	var counters []models.GuestQueueCounter
 	for rows.Next() {
 		var c models.GuestQueueCounter
+		var staffNames string
 		if err := rows.Scan(
 			&c.CounterID,
 			&c.CounterName,
 			&c.CounterCode,
 			&c.TicketPrefix,
 			&c.CategoryName,
+			&staffNames,
 			&c.WaitingCount,
 		); err != nil {
 			return nil, err
 		}
 		if c.CategoryName == "" {
 			c.CategoryName = c.CounterName
+		}
+		if staffNames != "" {
+			c.StaffNames = strings.Split(staffNames, "||")
 		}
 		counters = append(counters, c)
 	}

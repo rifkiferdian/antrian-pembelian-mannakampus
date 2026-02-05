@@ -52,7 +52,9 @@ func GuestQueuePage(c *gin.Context) {
 
 	for i := range counters {
 		counters[i].IndexLabel = "Loket " + strconv.Itoa(i+1)
-		counters[i].StaffName = "-"
+		if len(counters[i].StaffNames) == 0 {
+			counters[i].StaffNames = []string{"-"}
+		}
 		counters[i].Icon = resolveCategoryIcon(counters[i].CategoryName)
 	}
 

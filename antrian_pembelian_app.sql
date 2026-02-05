@@ -37,6 +37,20 @@ CREATE TABLE `counters` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `counter_staffs`
+--
+
+CREATE TABLE `counter_staffs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `counter_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `status` enum('ACTIVE','REST') NOT NULL DEFAULT 'ACTIVE',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Dumping data for table `counters`
 --
@@ -339,6 +353,15 @@ ALTER TABLE `counters`
   ADD KEY `idx_counter_store` (`store_id`);
 
 --
+-- Indexes for table `counter_staffs`
+--
+ALTER TABLE `counter_staffs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_counter_staff` (`counter_id`,`user_id`),
+  ADD KEY `idx_counter_staff_status` (`counter_id`,`status`),
+  ADD KEY `idx_staff_counter` (`user_id`);
+
+--
 -- Indexes for table `model_has_permissions`
 --
 ALTER TABLE `model_has_permissions`
@@ -429,6 +452,12 @@ ALTER TABLE `counters`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `counter_staffs`
+--
+ALTER TABLE `counter_staffs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
@@ -479,6 +508,13 @@ ALTER TABLE `users`
 --
 ALTER TABLE `counters`
   ADD CONSTRAINT `fk_counters_store` FOREIGN KEY (`store_id`) REFERENCES `stores` (`store_id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `counter_staffs`
+--
+ALTER TABLE `counter_staffs`
+  ADD CONSTRAINT `fk_counter_staffs_counter` FOREIGN KEY (`counter_id`) REFERENCES `counters` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_counter_staffs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE CASCADE;
 
 --
 -- Constraints for table `model_has_permissions`

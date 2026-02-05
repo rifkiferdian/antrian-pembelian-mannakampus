@@ -8,7 +8,7 @@ type GuestQueueCounter struct {
 	TicketPrefix string
 	CategoryName string
 	WaitingCount int
-	StaffName    string
+	StaffNames   []string
 	Icon         string
 	IndexLabel   string
 }
