@@ -19,6 +19,8 @@ func RegisterWebRoutes(r *gin.Engine) {
 	r.POST("/guest/ticket", controllers.GuestQueuePrint)
 	r.GET("/guest/ticket/:id", controllers.GuestTicketShow)
 
+	r.GET("/view-queue/:store_id", controllers.ViewQueuePage)
+
 	auth := r.Group("/")
 	auth.Use(middleware.AuthRequired(), middleware.PermissionContext())
 	{
