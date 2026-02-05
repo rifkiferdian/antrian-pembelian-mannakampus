@@ -65,7 +65,7 @@
         </style>
     </head>
 
-    <body class="queue-surface min-h-screen font-body text-[clamp(18px,1.2vw,24px)] text-slate-900">
+    <body class="queue-surface min-h-screen font-body text-[clamp(18px,1.2vw,24px)] text-slate-900" data-store-id="{{ .StoreID }}">
         <main class="mx-auto flex min-h-screen w-full flex-col px-8 pb-14 pt-12 sm:px-12 lg:px-16">
             {{ if .Store }}
                 <div class="flex justify-end">
@@ -84,22 +84,25 @@
                         </span>
                     </div>
                     <div class="flex min-h-[420px] flex-col items-center justify-center px-10 py-12 text-center sm:px-14 lg:min-h-[520px]">
-                        {{ if .CurrentCall.TicketNo }}
-                            <p class="text-[clamp(76px,9vw,170px)] font-extrabold leading-none tracking-tight text-slate-900">{{ .CurrentCall.TicketNo }}</p>
-                            <div class="mt-6 inline-flex items-center justify-center rounded-2xl bg-slate-900 px-9 py-3.5 text-[clamp(16px,1.4vw,22px)] font-semibold uppercase tracking-[0.35em] text-brand-300">
+                        <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
+                            <p id="current-ticket" class="text-[clamp(76px,9vw,170px)] font-extrabold leading-none tracking-tight text-slate-900">
+                                {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
+                            </p>
+                            <div id="current-counter" class="mt-6 inline-flex items-center justify-center rounded-2xl bg-slate-900 px-9 py-3.5 text-[clamp(16px,1.4vw,22px)] font-semibold uppercase tracking-[0.35em] text-brand-300">
                                 {{ if .CurrentCall.CounterLabel }}
                                     {{ .CurrentCall.CounterLabel }}
                                 {{ else }}
                                     Loket -
                                 {{ end }}
                             </div>
-                            {{ if .CurrentCall.CategoryName }}
-                                <p class="mt-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.35em] text-slate-400">{{ .CurrentCall.CategoryName }}</p>
-                            {{ end }}
-                        {{ else }}
+                            <p id="current-category" class="mt-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CategoryName }}block{{ else }}hidden{{ end }}">
+                                {{ if .CurrentCall.CategoryName }}{{ .CurrentCall.CategoryName }}{{ end }}
+                            </p>
+                        </div>
+                        <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
                             <p class="text-[clamp(30px,2.8vw,40px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
                             <p class="mt-4 text-[clamp(14px,1.3vw,20px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
-                        {{ end }}
+                        </div>
                         <div class="mt-12 w-full rounded-2xl bg-slate-50 px-8 py-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase italic tracking-[0.35em] text-slate-400">
                             Silahkan menuju loket terkait
                         </div>
@@ -134,7 +137,7 @@
                         </span>
                         Status Loket
                     </div>
-                    <div class="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+                    <div id="queue-counters" class="mt-7 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
                         {{ if .Counters }}
                             {{ range .Counters }}
                                 <div class="rounded-[22px] border border-slate-200 bg-white px-6 py-9 text-center shadow-soft">
@@ -155,5 +158,134 @@
                 </div>
             </section>
         </main>
+
+        <script>
+            (function () {
+                var storeId = Number(document.body.getAttribute('data-store-id') || 0);
+                if (!storeId) return;
+
+                var ticketEl = document.getElementById('current-ticket');
+                var counterEl = document.getElementById('current-counter');
+                var categoryEl = document.getElementById('current-category');
+                var callContentEl = document.getElementById('current-call-content');
+                var callEmptyEl = document.getElementById('current-call-empty');
+                var countersGrid = document.getElementById('queue-counters');
+
+                function renderCurrentCall(call) {
+                    var ticketNo = call && call.ticket_no ? String(call.ticket_no).trim() : '';
+                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : 'Loket -';
+                    var categoryName = call && call.category_name ? String(call.category_name).trim() : '';
+                    var hasCall = ticketNo !== '';
+
+                    if (ticketEl) ticketEl.textContent = hasCall ? ticketNo : '-';
+                    if (counterEl) counterEl.textContent = counterLabel || 'Loket -';
+                    if (categoryEl) {
+                        if (categoryName) {
+                            categoryEl.textContent = categoryName;
+                            categoryEl.classList.remove('hidden');
+                        } else {
+                            categoryEl.textContent = '';
+                            categoryEl.classList.add('hidden');
+                        }
+                    }
+                    if (callContentEl && callEmptyEl) {
+                        if (hasCall) {
+                            callContentEl.classList.remove('hidden');
+                            callEmptyEl.classList.add('hidden');
+                        } else {
+                            callContentEl.classList.add('hidden');
+                            callEmptyEl.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                function buildCounterCard(counter) {
+                    var card = document.createElement('div');
+                    card.className = 'rounded-[22px] border border-slate-200 bg-white px-6 py-9 text-center shadow-soft';
+
+                    var label = document.createElement('p');
+                    label.className = 'text-[clamp(14px,1.1vw,18px)] font-semibold uppercase tracking-[0.35em] text-brand-500';
+                    label.textContent = counter.counter_label || 'Loket -';
+
+                    var category = document.createElement('p');
+                    category.className = 'mt-3 text-[clamp(14px,1.1vw,20px)] font-semibold uppercase tracking-[0.2em] text-slate-600';
+                    category.textContent = counter.category_name || '-';
+
+                    var ticket = document.createElement('p');
+                    ticket.className = 'mt-6 text-[clamp(32px,3vw,52px)] font-extrabold text-slate-900';
+                    ticket.textContent = counter.ticket_no || '-';
+
+                    var status = document.createElement('span');
+                    status.className = 'mt-6 inline-flex items-center justify-center rounded-full px-6 py-2 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.25em] ' + (counter.status_class || 'bg-slate-100 text-slate-400');
+                    status.textContent = counter.status_label || 'BELUM ADA';
+
+                    card.appendChild(label);
+                    card.appendChild(category);
+                    card.appendChild(ticket);
+                    card.appendChild(status);
+                    return card;
+                }
+
+                function renderCounters(counters) {
+                    if (!countersGrid) return;
+                    countersGrid.innerHTML = '';
+                    if (!counters || !counters.length) {
+                        var empty = document.createElement('div');
+                        empty.className = 'col-span-full rounded-2xl border border-slate-200 bg-white p-7 text-center text-[clamp(14px,1.1vw,20px)] text-slate-500';
+                        empty.textContent = 'Belum ada loket aktif untuk store ini.';
+                        countersGrid.appendChild(empty);
+                        return;
+                    }
+                    counters.forEach(function (counter) {
+                        countersGrid.appendChild(buildCounterCard(counter));
+                    });
+                }
+
+                function speak(call) {
+                    if (!call || !call.ticket_no) return;
+                    if (!('speechSynthesis' in window)) return;
+                    var ticketNo = String(call.ticket_no).replace(/-/g, ' ');
+                    var counterLabel = call.counter_label ? String(call.counter_label) : 'loket';
+                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + counterLabel;
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                var reconnectDelay = 2000;
+                var ws;
+
+                function connectWS() {
+                    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    var wsUrl = protocol + '//' + window.location.host + '/ws/view-queue/' + storeId;
+                    ws = new WebSocket(wsUrl);
+
+                    ws.onmessage = function (event) {
+                        var payload;
+                        try {
+                            payload = JSON.parse(event.data);
+                        } catch (e) {
+                            return;
+                        }
+                        if (!payload || payload.type !== 'queue_update') return;
+                        renderCurrentCall(payload.current_call || {});
+                        renderCounters(payload.counters || []);
+
+                        if (payload.action === 'call' || payload.action === 'recall') {
+                            speak(payload.current_call || {});
+                        }
+                    };
+
+                    ws.onclose = function () {
+                        setTimeout(connectWS, reconnectDelay);
+                    };
+                }
+
+                connectWS();
+            })();
+        </script>
     </body>
 </html>

@@ -20,11 +20,17 @@ func RegisterWebRoutes(r *gin.Engine) {
 	r.GET("/guest/ticket/:id", controllers.GuestTicketShow)
 
 	r.GET("/view-queue/:store_id", controllers.ViewQueuePage)
+	r.GET("/ws/view-queue/:store_id", controllers.ViewQueueWS)
 
 	auth := r.Group("/")
 	auth.Use(middleware.AuthRequired(), middleware.PermissionContext())
 	{
 		auth.GET("/dashboard", controllers.DashboardIndex)
+		auth.GET("/dashboard/queue/state", controllers.DashboardQueueState)
+		auth.POST("/dashboard/queue/next", controllers.QueueCallNext)
+		auth.POST("/dashboard/queue/recall", controllers.QueueRecall)
+		auth.POST("/dashboard/queue/done", controllers.QueueDone)
+		auth.POST("/dashboard/queue/skip", controllers.QueueSkip)
 		auth.GET("/reports", controllers.ReportsIndex)
 
 		auth.GET("/users", middleware.RequirePermission("user_management_access"), controllers.UserIndex)

@@ -86,60 +86,81 @@
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Status Layanan</p>
                                 </div>
-                                <div class="flex items-center rounded-full border border-slate-200 bg-white/80 p-1 shadow-sm">
-                                    <button class="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-sm transition hover:bg-orange-600">
-                                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm">
-                                            <i class="bx bx-check"></i>
-                                        </span>
-                                        AKTIF
-                                    </button>
-                                    <button class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] text-slate-500 transition hover:bg-slate-100">
-                                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-500">
-                                            <i class="bx bx-coffee"></i>
-                                        </span>
-                                        ISTIRAHAT
-                                    </button>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 shadow-sm">
+                                        <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Loket</span>
+                                        <select id="dashboard-counter" class="bg-transparent text-xs font-semibold text-slate-600 outline-none">
+                                            {{ if .Counters }}
+                                                {{ range .Counters }}
+                                                    {{ if .IsActive }}
+                                                        <option value="{{ .ID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .StoreName }}</option>
+                                                    {{ end }}
+                                                {{ end }}
+                                            {{ else }}
+                                                <option value="">Tidak ada loket</option>
+                                            {{ end }}
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center rounded-full border border-slate-200 bg-white/80 p-1 shadow-sm">
+                                        <button type="button" class="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-sm transition hover:bg-orange-600">
+                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm">
+                                                <i class="bx bx-check"></i>
+                                            </span>
+                                            AKTIF
+                                        </button>
+                                        <button type="button" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] text-slate-500 transition hover:bg-slate-100">
+                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-500">
+                                                <i class="bx bx-coffee"></i>
+                                            </span>
+                                            ISTIRAHAT
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="grid gap-4 lg:grid-cols-[2.2fr_1fr] min-h-[600px]">
                                 <section class="dash-card flex flex-col justify-between rounded-[28px] p-5 sm:p-7">
                                     <div class="text-center">
                                         <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Sedang Melayani</p>
-                                        <h1 class="mt-6 text-[64px] font-bold leading-none text-orange-500 sm:text-[88px]">A-042</h1>
-                                        <span class="mt-4 inline-flex items-center rounded-full bg-orange-50 px-4 py-1.5 text-xs font-semibold tracking-[0.2em] text-orange-600">
-                                            Supplier Sayur &amp; Buah
+                                        <h1 id="serving-ticket" class="mt-6 text-[64px] font-bold leading-none text-orange-500 sm:text-[88px]">
+                                            {{ if .Serving.TicketNo }}{{ .Serving.TicketNo }}{{ else }}-{{ end }}
+                                        </h1>
+                                        <span id="serving-category" class="mt-4 items-center rounded-full bg-orange-50 px-4 py-1.5 text-xs font-semibold tracking-[0.2em] text-orange-600 {{ if .Serving.CategoryName }}inline-flex{{ else }}hidden{{ end }}">
+                                            {{ if .Serving.CategoryName }}{{ .Serving.CategoryName }}{{ end }}
                                         </span>
+                                        <p id="serving-empty" class="mt-3 text-sm font-semibold text-slate-400 {{ if .Serving.TicketNo }}hidden{{ end }}">
+                                            Belum ada panggilan
+                                        </p>
                                         <div class="mt-8">
                                             <p class="text-sm font-semibold text-slate-400">Waktu Pelayanan</p>
                                             <div class="mt-2 flex items-center justify-center gap-4 text-2xl font-semibold text-slate-800">
                                                 <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-orange-50 text-orange-500">
                                                     <i class="bx bx-time text-xl"></i>
                                                 </span>
-                                                04:12
+                                                <span id="service-timer" data-called-at="{{ .Serving.CalledAtUnix }}">{{ if .Serving.DurationLabel }}{{ .Serving.DurationLabel }}{{ else }}00:00{{ end }}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                        <button class="flex h-36 flex-col items-center justify-center gap-2 rounded-3xl bg-orange-500 px-4 text-center text-base font-semibold text-white shadow-sm transition hover:bg-orange-600">
+                                        <button type="button" data-queue-action="next" class="flex h-36 flex-col items-center justify-center gap-2 rounded-3xl bg-orange-500 px-4 text-center text-base font-semibold text-white shadow-sm transition hover:bg-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-2xl">
                                                 <i class="bx bx-chevron-right"></i>
                                             </span>
                                             Berikutnya
                                         </button>
-                                        <button class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="recall" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-refresh"></i>
                                             </span>
                                             Panggil Ulang
                                         </button>
-                                        <button class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="done" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-check"></i>
                                             </span>
                                             Selesai
                                         </button>
-                                        <button class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="skip" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-skip-next"></i>
                                             </span>
@@ -156,56 +177,42 @@
                                             </span>
                                             Antrian (Fresh)
                                         </div>
-                                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">12 Menunggu</span>
+                                        <span id="waiting-count" class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                                            {{ if gt .WaitingTotal 0 }}{{ .WaitingTotal }} Menunggu{{ else }}0 Menunggu{{ end }}
+                                        </span>
                                     </div>
 
-                                    <div class="mt-4 space-y-3">
-                                        <div class="rounded-2xl border border-orange-200/60 bg-orange-50/50 p-3">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <p class="text-[11px] font-semibold text-orange-500">Berikutnya</p>
-                                                    <p class="text-xl font-semibold text-slate-800">A-043</p>
-                                                    <p class="text-xs text-slate-500">Supplier Telur</p>
-                                                </div>
-                                                <p class="text-xs font-semibold text-slate-500">Tunggu<br><span class="text-sm text-slate-700">18m</span></p>
+                                    <div id="waiting-list" class="mt-4 space-y-3">
+                                        {{ if .WaitingItems }}
+                                            {{ range $index, $item := .WaitingItems }}
+                                                {{ if eq $index 0 }}
+                                                    <div class="rounded-2xl border border-orange-200/60 bg-orange-50/50 p-3">
+                                                        <div class="flex items-center justify-between">
+                                                            <div>
+                                                                <p class="text-[11px] font-semibold text-orange-500">Berikutnya</p>
+                                                                <p class="text-xl font-semibold text-slate-800">{{ $item.TicketNo }}</p>
+                                                                <p class="text-xs text-slate-500">{{ $item.CategoryName }}</p>
+                                                            </div>
+                                                            <p class="text-xs font-semibold text-slate-500">Tunggu<br><span class="text-sm text-slate-700">{{ $item.WaitingMinutes }}m</span></p>
+                                                        </div>
+                                                    </div>
+                                                {{ else }}
+                                                    <div class="dash-card rounded-2xl p-3">
+                                                        <div class="flex items-center justify-between">
+                                                            <div>
+                                                                <p class="text-lg font-semibold text-slate-800">{{ $item.TicketNo }}</p>
+                                                                <p class="text-xs text-slate-500">{{ $item.CategoryName }}</p>
+                                                            </div>
+                                                            <span class="text-xs font-semibold text-slate-500">{{ $item.WaitingMinutes }}m</span>
+                                                        </div>
+                                                    </div>
+                                                {{ end }}
+                                            {{ end }}
+                                        {{ else }}
+                                            <div class="dash-card rounded-2xl p-4 text-center text-xs font-semibold text-slate-500">
+                                                Belum ada antrian menunggu.
                                             </div>
-                                        </div>
-                                        <div class="dash-card rounded-2xl p-3">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <p class="text-lg font-semibold text-slate-800">A-044</p>
-                                                    <p class="text-xs text-slate-500">Supplier Daging</p>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-500">22m</span>
-                                            </div>
-                                        </div>
-                                        <div class="dash-card rounded-2xl p-3">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <p class="text-lg font-semibold text-slate-800">A-045</p>
-                                                    <p class="text-xs text-slate-500">Supplier Ikan</p>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-500">25m</span>
-                                            </div>
-                                        </div>
-                                        <div class="dash-card rounded-2xl p-3">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <p class="text-lg font-semibold text-slate-800">A-046</p>
-                                                    <p class="text-xs text-slate-500">Supplier Frozen</p>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-500">31m</span>
-                                            </div>
-                                        </div>
-                                        <div class="dash-card rounded-2xl p-3">
-                                            <div class="flex items-center justify-between">
-                                                <div>
-                                                    <p class="text-lg font-semibold text-slate-800">A-047</p>
-                                                    <p class="text-xs text-slate-500">Supplier Susu</p>
-                                                </div>
-                                                <span class="text-xs font-semibold text-slate-500">40m</span>
-                                            </div>
-                                        </div>
+                                        {{ end }}
                                     </div>
 
                                     <div class="mt-auto pt-4 text-right">
@@ -263,6 +270,225 @@
                     overlay.addEventListener('click', closeSidebar);
                 }
             });
+        </script>
+
+        <script>
+            (function () {
+                var counterSelect = document.getElementById('dashboard-counter');
+                var actionButtons = document.querySelectorAll('[data-queue-action]');
+                var servingTicketEl = document.getElementById('serving-ticket');
+                var servingCategoryEl = document.getElementById('serving-category');
+                var servingEmptyEl = document.getElementById('serving-empty');
+                var serviceTimerEl = document.getElementById('service-timer');
+                var waitingCountEl = document.getElementById('waiting-count');
+                var waitingListEl = document.getElementById('waiting-list');
+                var timerInterval;
+
+                var endpoints = {
+                    next: '/dashboard/queue/next',
+                    recall: '/dashboard/queue/recall',
+                    done: '/dashboard/queue/done',
+                    skip: '/dashboard/queue/skip',
+                };
+
+                function notify(type, message) {
+                    if (window.Swal && typeof window.Swal.fire === 'function') {
+                        window.Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: type,
+                            title: message,
+                            showConfirmButton: false,
+                            timer: 2200,
+                        });
+                        return;
+                    }
+                    alert(message);
+                }
+
+                function setLoading(button, isLoading) {
+                    if (!button) return;
+                    button.disabled = isLoading;
+                    if (isLoading) {
+                        button.classList.add('opacity-70', 'cursor-wait');
+                    } else {
+                        button.classList.remove('opacity-70', 'cursor-wait');
+                    }
+                }
+
+                function formatDuration(totalSeconds) {
+                    var seconds = Math.max(0, Number(totalSeconds) || 0);
+                    var hours = Math.floor(seconds / 3600);
+                    var minutes = Math.floor((seconds % 3600) / 60);
+                    var secs = seconds % 60;
+                    if (hours > 0) {
+                        return String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                    }
+                    return String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                }
+
+                function startServiceTimer(calledAtUnix) {
+                    if (!serviceTimerEl) return;
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+                    if (!calledAtUnix) {
+                        serviceTimerEl.textContent = '00:00';
+                        return;
+                    }
+
+                    function tick() {
+                        var now = Math.floor(Date.now() / 1000);
+                        var diff = Math.max(0, now - calledAtUnix);
+                        serviceTimerEl.textContent = formatDuration(diff);
+                    }
+
+                    tick();
+                    timerInterval = setInterval(tick, 1000);
+                }
+
+                function renderServing(serving) {
+                    var ticketNo = serving && serving.ticket_no ? String(serving.ticket_no) : '-';
+                    var categoryName = serving && serving.category_name ? String(serving.category_name) : '';
+                    var calledAtUnix = serving && serving.called_at_unix ? Number(serving.called_at_unix) : 0;
+                    var hasTicket = serving && serving.ticket_no;
+
+                    if (servingTicketEl) {
+                        servingTicketEl.textContent = ticketNo;
+                    }
+                    if (servingCategoryEl) {
+                        if (categoryName) {
+                            servingCategoryEl.textContent = categoryName;
+                            servingCategoryEl.classList.remove('hidden');
+                            servingCategoryEl.classList.add('inline-flex');
+                        } else {
+                            servingCategoryEl.textContent = '';
+                            servingCategoryEl.classList.add('hidden');
+                            servingCategoryEl.classList.remove('inline-flex');
+                        }
+                    }
+                    if (servingEmptyEl) {
+                        if (hasTicket) {
+                            servingEmptyEl.classList.add('hidden');
+                        } else {
+                            servingEmptyEl.classList.remove('hidden');
+                        }
+                    }
+
+                    startServiceTimer(calledAtUnix);
+                }
+
+                function buildWaitingCard(item, isNext) {
+                    var wrapper = document.createElement('div');
+                    if (isNext) {
+                        wrapper.className = 'rounded-2xl border border-orange-200/60 bg-orange-50/50 p-3';
+                        wrapper.innerHTML =
+                            '<div class="flex items-center justify-between">' +
+                            '<div>' +
+                            '<p class="text-[11px] font-semibold text-orange-500">Berikutnya</p>' +
+                            '<p class="text-xl font-semibold text-slate-800">' + item.ticket_no + '</p>' +
+                            '<p class="text-xs text-slate-500">' + (item.category_name || '-') + '</p>' +
+                            '</div>' +
+                            '<p class="text-xs font-semibold text-slate-500">Tunggu<br><span class="text-sm text-slate-700">' + item.waiting_minutes + 'm</span></p>' +
+                            '</div>';
+                    } else {
+                        wrapper.className = 'dash-card rounded-2xl p-3';
+                        wrapper.innerHTML =
+                            '<div class="flex items-center justify-between">' +
+                            '<div>' +
+                            '<p class="text-lg font-semibold text-slate-800">' + item.ticket_no + '</p>' +
+                            '<p class="text-xs text-slate-500">' + (item.category_name || '-') + '</p>' +
+                            '</div>' +
+                            '<span class="text-xs font-semibold text-slate-500">' + item.waiting_minutes + 'm</span>' +
+                            '</div>';
+                    }
+                    return wrapper;
+                }
+
+                function renderWaiting(items, total) {
+                    if (waitingCountEl) {
+                        var totalVal = Number(total) || 0;
+                        waitingCountEl.textContent = totalVal + ' Menunggu';
+                    }
+                    if (!waitingListEl) return;
+                    waitingListEl.innerHTML = '';
+                    if (!items || !items.length) {
+                        var empty = document.createElement('div');
+                        empty.className = 'dash-card rounded-2xl p-4 text-center text-xs font-semibold text-slate-500';
+                        empty.textContent = 'Belum ada antrian menunggu.';
+                        waitingListEl.appendChild(empty);
+                        return;
+                    }
+                    items.forEach(function (item, index) {
+                        waitingListEl.appendChild(buildWaitingCard(item, index === 0));
+                    });
+                }
+
+                async function fetchState(counterId) {
+                    if (!counterId) return;
+                    try {
+                        var response = await fetch('/dashboard/queue/state?counter_id=' + counterId, { method: 'GET' });
+                        var data = await response.json();
+                        if (!response.ok || !data.ok) {
+                            throw new Error(data.message || 'Gagal memuat data antrian');
+                        }
+                        renderServing(data.serving || {});
+                        renderWaiting(data.waiting_items || [], data.waiting_total || 0);
+                    } catch (err) {
+                        notify('error', err.message || 'Terjadi kesalahan');
+                    }
+                }
+
+                async function sendAction(action, button) {
+                    var counterId = counterSelect ? Number(counterSelect.value || 0) : 0;
+                    if (!counterId) {
+                        notify('warning', 'Pilih loket terlebih dahulu');
+                        return;
+                    }
+
+                    var endpoint = endpoints[action];
+                    if (!endpoint) return;
+
+                    setLoading(button, true);
+                    try {
+                        var response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ counter_id: counterId }),
+                        });
+                        var data = await response.json();
+                        if (!response.ok || !data.ok) {
+                            throw new Error(data.message || 'Aksi gagal dijalankan');
+                        }
+                        notify('success', data.message || 'Berhasil');
+                        fetchState(counterId);
+                    } catch (err) {
+                        notify('error', err.message || 'Terjadi kesalahan');
+                    } finally {
+                        setLoading(button, false);
+                    }
+                }
+
+                actionButtons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        var action = button.getAttribute('data-queue-action');
+                        sendAction(action, button);
+                    });
+                });
+
+                if (counterSelect) {
+                    counterSelect.addEventListener('change', function () {
+                        var counterId = Number(counterSelect.value || 0);
+                        fetchState(counterId);
+                    });
+                }
+
+                if (serviceTimerEl) {
+                    var initialCalledAt = Number(serviceTimerEl.getAttribute('data-called-at') || 0);
+                    startServiceTimer(initialCalledAt);
+                }
+            })();
         </script>
     </body>
 </html>
