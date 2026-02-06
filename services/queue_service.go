@@ -38,6 +38,18 @@ func (s *QueueService) CallNext(storeID, counterID, userID int) (int64, string, 
 	}
 
 	now := time.Now()
+	currentID, _, currentErr := s.Repo.GetCurrentCalledTicket(tx, storeID, counterID, ticketDate)
+	if currentErr != nil && !errors.Is(currentErr, sql.ErrNoRows) {
+		return 0, "", currentErr
+	}
+	if currentID > 0 {
+		if err = s.Repo.MarkDone(tx, currentID, now); err != nil {
+			return 0, "", err
+		}
+		if err = s.Repo.InsertEvent(tx, currentID, "DONE", userID, "Selesai otomatis saat panggil berikutnya"); err != nil {
+			return 0, "", err
+		}
+	}
 	if err = s.Repo.MarkCalled(tx, ticketID, userID, now); err != nil {
 		return 0, "", err
 	}

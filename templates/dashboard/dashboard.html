@@ -93,7 +93,7 @@
                                             {{ if .Counters }}
                                                 {{ range .Counters }}
                                                     {{ if .IsActive }}
-                                                    <option value="{{ .ID }}" data-store-id="{{ .StoreID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .StoreName }}</option>
+                                                    <option value="{{ .ID }}" data-store-id="{{ .StoreID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .CounterCode }} - {{ .StoreName }}</option>
                                                     {{ end }}
                                                 {{ end }}
                                             {{ else }}

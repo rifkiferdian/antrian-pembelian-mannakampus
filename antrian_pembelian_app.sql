@@ -170,6 +170,7 @@ CREATE TABLE `queue_tickets` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `called_at` datetime DEFAULT NULL,
   `done_at` datetime DEFAULT NULL,
+  `service_duration_seconds` int(11) UNSIGNED DEFAULT NULL,
   `called_by_user_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -550,6 +551,10 @@ ALTER TABLE `role_has_permissions`
   ADD CONSTRAINT `role_has_permissions_ibfk_1` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `role_has_permissions_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
 COMMIT;
+
+ALTER TABLE queue_tickets
+  ADD COLUMN service_duration_seconds INT(11) UNSIGNED NULL AFTER done_at;
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

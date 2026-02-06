@@ -57,7 +57,11 @@ func (r *QueueActionRepository) GetCurrentCalledTicket(tx *sql.Tx, storeID, coun
 func (r *QueueActionRepository) MarkCalled(tx *sql.Tx, ticketID int64, userID int, calledAt time.Time) error {
 	_, err := tx.Exec(`
 		UPDATE queue_tickets
-		SET status = 'CALLED', called_at = ?, called_by_user_id = ?
+		SET status = 'CALLED',
+			called_at = ?,
+			called_by_user_id = ?,
+			done_at = NULL,
+			service_duration_seconds = NULL
 		WHERE id = ?
 	`, calledAt.Format("2006-01-02 15:04:05"), userID, ticketID)
 	return err
@@ -66,18 +70,28 @@ func (r *QueueActionRepository) MarkCalled(tx *sql.Tx, ticketID int64, userID in
 func (r *QueueActionRepository) MarkDone(tx *sql.Tx, ticketID int64, doneAt time.Time) error {
 	_, err := tx.Exec(`
 		UPDATE queue_tickets
-		SET status = 'DONE', done_at = ?
+		SET status = 'DONE',
+			done_at = ?,
+			service_duration_seconds = CASE
+				WHEN called_at IS NULL THEN 0
+				ELSE GREATEST(TIMESTAMPDIFF(SECOND, called_at, ?), 0)
+			END
 		WHERE id = ?
-	`, doneAt.Format("2006-01-02 15:04:05"), ticketID)
+	`, doneAt.Format("2006-01-02 15:04:05"), doneAt.Format("2006-01-02 15:04:05"), ticketID)
 	return err
 }
 
 func (r *QueueActionRepository) MarkSkipped(tx *sql.Tx, ticketID int64, doneAt time.Time) error {
 	_, err := tx.Exec(`
 		UPDATE queue_tickets
-		SET status = 'SKIPPED', done_at = ?
+		SET status = 'SKIPPED',
+			done_at = ?,
+			service_duration_seconds = CASE
+				WHEN called_at IS NULL THEN 0
+				ELSE GREATEST(TIMESTAMPDIFF(SECOND, called_at, ?), 0)
+			END
 		WHERE id = ?
-	`, doneAt.Format("2006-01-02 15:04:05"), ticketID)
+	`, doneAt.Format("2006-01-02 15:04:05"), doneAt.Format("2006-01-02 15:04:05"), ticketID)
 	return err
 }
 
