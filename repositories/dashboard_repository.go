@@ -61,7 +61,7 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 	if err := r.DB.QueryRow(`
 		SELECT COUNT(*)
 		FROM queue_tickets
-		WHERE store_id = ? AND counter_id = ? AND ticket_date = ? AND status = 'WAITING'
+		WHERE store_id = ? AND counter_id = ? AND ticket_date = ? AND status IN ('WAITING', 'SKIPPED')
 	`, storeID, counterID, ticketDate.Format("2006-01-02")).Scan(&total); err != nil {
 		return nil, 0, err
 	}
@@ -71,13 +71,21 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 			qt.ticket_no,
 			qt.queue_number,
 			qt.created_at,
+			qt.status,
 			COALESCE(sc.category_name, '') AS category_name,
 			COALESCE(c.counter_name, '') AS counter_name
 		FROM queue_tickets qt
 		LEFT JOIN counters c ON c.id = qt.counter_id
 		LEFT JOIN service_categories sc ON sc.ticket_prefix = c.ticket_prefix
-		WHERE qt.store_id = ? AND qt.counter_id = ? AND qt.ticket_date = ? AND qt.status = 'WAITING'
-		ORDER BY qt.queue_number ASC, qt.id ASC
+		WHERE qt.store_id = ? AND qt.counter_id = ? AND qt.ticket_date = ? AND qt.status IN ('WAITING', 'SKIPPED')
+		ORDER BY
+			CASE qt.status
+				WHEN 'WAITING' THEN 0
+				WHEN 'SKIPPED' THEN 1
+				ELSE 2
+			END,
+			qt.queue_number ASC,
+			qt.id ASC
 		LIMIT ?
 	`, storeID, counterID, ticketDate.Format("2006-01-02"), limit)
 	if err != nil {
@@ -91,6 +99,7 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 		var (
 			item        models.DashboardQueueItem
 			createdAt   time.Time
+			status      sql.NullString
 			category    sql.NullString
 			counterName sql.NullString
 		)
@@ -98,12 +107,14 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 			&item.TicketNo,
 			&item.QueueNumber,
 			&createdAt,
+			&status,
 			&category,
 			&counterName,
 		); err != nil {
 			return nil, 0, err
 		}
 
+		item.Status = status.String
 		item.CategoryName = category.String
 		if item.CategoryName == "" {
 			item.CategoryName = counterName.String

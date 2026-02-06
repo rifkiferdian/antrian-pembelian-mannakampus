@@ -16,4 +16,7 @@ type DashboardQueueItem struct {
 	CategoryName   string `json:"category_name"`
 	QueueNumber    int    `json:"queue_number"`
 	WaitingMinutes int    `json:"waiting_minutes"`
+	Status         string `json:"status"`
+	StatusLabel    string `json:"status_label"`
+	StatusClass    string `json:"status_class"`
 }

@@ -32,6 +32,12 @@ func buildDashboardQueueState(counter models.Counter) (models.DashboardServing, 
 		return models.DashboardServing{}, nil, 0, err
 	}
 
+	for i := range waitingItems {
+		label, className := resolveQueueStatus(waitingItems[i].Status, false)
+		waitingItems[i].StatusLabel = label
+		waitingItems[i].StatusClass = className
+	}
+
 	return serving, waitingItems, waitingTotal, nil
 }
 

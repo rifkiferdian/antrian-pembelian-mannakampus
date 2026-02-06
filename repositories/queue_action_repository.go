@@ -17,8 +17,15 @@ func (r *QueueActionRepository) GetNextWaitingTicket(tx *sql.Tx, storeID, counte
 	err := tx.QueryRow(`
 		SELECT id, ticket_no
 		FROM queue_tickets
-		WHERE store_id = ? AND counter_id = ? AND ticket_date = ? AND status = 'WAITING'
-		ORDER BY queue_number ASC, id ASC
+		WHERE store_id = ? AND counter_id = ? AND ticket_date = ? AND status IN ('WAITING', 'SKIPPED')
+		ORDER BY
+			CASE status
+				WHEN 'WAITING' THEN 0
+				WHEN 'SKIPPED' THEN 1
+				ELSE 2
+			END,
+			queue_number ASC,
+			id ASC
 		LIMIT 1
 		FOR UPDATE
 	`, storeID, counterID, ticketDate.Format("2006-01-02")).Scan(&id, &ticketNo)

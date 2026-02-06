@@ -91,9 +91,15 @@
                 <div class="queue-card queue-call-card overflow-hidden rounded-[28px]">
                     <div class="flex items-center justify-between bg-orange-500 px-10 py-6 text-white">
                         <span class="text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
-                        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-white/25 text-3xl">
+                        <button
+                            id="speaker-test-btn"
+                            type="button"
+                            class="flex h-14 w-14 items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Tes speaker"
+                            aria-label="Tes speaker"
+                        >
                             <i class="bx bx-volume-full"></i>
-                        </span>
+                        </button>
                     </div>
                     <div class="flex min-h-[420px] flex-col items-center justify-center px-10 py-12 text-center sm:px-14 lg:min-h-[520px]">
                         <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
@@ -174,9 +180,8 @@
 
         <script>
             (function () {
+                var speakerTestBtn = document.getElementById('speaker-test-btn');
                 var storeId = Number(document.body.getAttribute('data-store-id') || 0);
-                if (!storeId) return;
-
                 var ticketEl = document.getElementById('current-ticket');
                 var counterEl = document.getElementById('current-counter');
                 var counterWordEl = document.getElementById('current-counter-word');
@@ -290,6 +295,18 @@
                     window.speechSynthesis.speak(utter);
                 }
 
+                function testSpeaker() {
+                    if (!('speechSynthesis' in window)) return;
+                    var message = 'Tes speaker. Jika Anda mendengar ini, speaker aktif.';
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
                 var reconnectDelay = 2000;
                 var ws;
 
@@ -322,6 +339,20 @@
                 if (counterEl) {
                     renderCounterLabel(counterEl.getAttribute('data-counter-label') || 'Loket -');
                 }
+
+                if (speakerTestBtn) {
+                    if (!('speechSynthesis' in window)) {
+                        speakerTestBtn.disabled = true;
+                        speakerTestBtn.title = 'Browser tidak mendukung text-to-speech';
+                        speakerTestBtn.setAttribute('aria-label', 'Speaker tidak didukung');
+                    } else {
+                        speakerTestBtn.addEventListener('click', function () {
+                            testSpeaker();
+                        });
+                    }
+                }
+
+                if (!storeId) return;
 
                 connectWS();
             })();
