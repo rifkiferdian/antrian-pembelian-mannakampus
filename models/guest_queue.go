@@ -26,4 +26,5 @@ type GuestTicket struct {
 	QueueNumber  int
 	TicketDate   string
 	CreatedAt    string
+	CreatedAtDisplay string
 }

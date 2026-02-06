@@ -125,6 +125,7 @@ func (r *QueueTicketRepository) GetTicketByID(id int64) (models.GuestTicket, err
 
 	ticket.TicketDate = ticketDate.Format("2006-01-02")
 	ticket.CreatedAt = createdAt.Format("2006-01-02 15:04:05")
+	ticket.CreatedAtDisplay = createdAt.Format("02 Jan 2006  15:04:05")
 
 	return ticket, nil
 }
