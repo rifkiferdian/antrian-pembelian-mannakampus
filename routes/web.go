@@ -48,5 +48,10 @@ func RegisterWebRoutes(r *gin.Engine) {
 		auth.POST("/counters", controllers.CounterStore)
 		auth.POST("/counters/update", controllers.CounterUpdate)
 		auth.GET("/counters/delete/:id", controllers.CounterDelete)
+
+		auth.GET("/counter_staff", controllers.CounterStaffIndex)
+		auth.POST("/counter_staff", controllers.CounterStaffStore)
+		auth.POST("/counter_staff/update", controllers.CounterStaffUpdate)
+		auth.GET("/counter_staff/delete/:id", controllers.CounterStaffDelete)
 	}
 }

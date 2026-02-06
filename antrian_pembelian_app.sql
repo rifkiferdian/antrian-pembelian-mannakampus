@@ -47,7 +47,7 @@ CREATE TABLE `counter_staffs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `counter_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `status` enum('ACTIVE','REST') NOT NULL DEFAULT 'ACTIVE',
+  `status` enum('ACTIVE','REST','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
