@@ -93,7 +93,7 @@
                                             {{ if .Counters }}
                                                 {{ range .Counters }}
                                                     {{ if .IsActive }}
-                                                        <option value="{{ .ID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .StoreName }}</option>
+                                                    <option value="{{ .ID }}" data-store-id="{{ .StoreID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .StoreName }}</option>
                                                     {{ end }}
                                                 {{ end }}
                                             {{ else }}
@@ -425,6 +425,12 @@
                     });
                 }
 
+                function getSelectedStoreId() {
+                    if (!counterSelect || !counterSelect.selectedOptions || !counterSelect.selectedOptions.length) return 0;
+                    var selected = counterSelect.selectedOptions[0];
+                    return Number(selected.getAttribute('data-store-id') || 0);
+                }
+
                 async function fetchState(counterId) {
                     if (!counterId) return;
                     try {
@@ -438,6 +444,45 @@
                     } catch (err) {
                         notify('error', err.message || 'Terjadi kesalahan');
                     }
+                }
+
+                var ws;
+                var reconnectDelay = 2000;
+                var wsStoreId = 0;
+
+                function connectWS() {
+                    var storeId = getSelectedStoreId();
+                    if (!storeId) return;
+                    if (ws && wsStoreId === storeId && ws.readyState === WebSocket.OPEN) {
+                        return;
+                    }
+                    if (ws && wsStoreId !== storeId) {
+                        ws.onclose = null;
+                        ws.close();
+                    }
+
+                    wsStoreId = storeId;
+                    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    var wsUrl = protocol + '//' + window.location.host + '/ws/view-queue/' + storeId;
+                    ws = new WebSocket(wsUrl);
+
+                    ws.onmessage = function (event) {
+                        var payload;
+                        try {
+                            payload = JSON.parse(event.data);
+                        } catch (e) {
+                            return;
+                        }
+                        if (!payload || payload.type !== 'queue_update') return;
+                        var counterId = counterSelect ? Number(counterSelect.value || 0) : 0;
+                        if (counterId) {
+                            fetchState(counterId);
+                        }
+                    };
+
+                    ws.onclose = function () {
+                        setTimeout(connectWS, reconnectDelay);
+                    };
                 }
 
                 async function sendAction(action, button) {
@@ -481,6 +526,7 @@
                     counterSelect.addEventListener('change', function () {
                         var counterId = Number(counterSelect.value || 0);
                         fetchState(counterId);
+                        connectWS();
                     });
                 }
 
@@ -488,6 +534,8 @@
                     var initialCalledAt = Number(serviceTimerEl.getAttribute('data-called-at') || 0);
                     startServiceTimer(initialCalledAt);
                 }
+
+                connectWS();
             })();
         </script>
     </body>

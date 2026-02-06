@@ -9,6 +9,7 @@ import (
 
 	"stok-hadiah/config"
 	"stok-hadiah/models"
+	"stok-hadiah/realtime"
 	"stok-hadiah/repositories"
 
 	"github.com/gin-gonic/gin"
@@ -99,6 +100,10 @@ func GuestQueuePrint(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if payload, payloadErr := buildQueueViewPayload(counter.StoreID, "new_ticket"); payloadErr == nil {
+		realtime.QueueHub.Broadcast(counter.StoreID, payload)
 	}
 
 	c.Redirect(http.StatusSeeOther, "/guest/ticket/"+strconv.FormatInt(ticket.ID, 10))
