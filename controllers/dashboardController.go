@@ -13,8 +13,15 @@ import (
 
 func DashboardIndex(c *gin.Context) {
 	storeIDs := getSessionStoreIDs(c)
+	userID := getSessionUserID(c)
 	counterRepo := &repositories.CounterRepository{DB: config.DB}
-	counters, err := counterRepo.GetByStoreIDs(storeIDs)
+	var counters []models.Counter
+	var err error
+	if userID > 0 {
+		counters, err = counterRepo.GetByStoreIDsAndUserID(storeIDs, userID)
+	} else {
+		counters = []models.Counter{}
+	}
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return

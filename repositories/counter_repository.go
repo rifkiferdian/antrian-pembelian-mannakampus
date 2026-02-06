@@ -218,6 +218,92 @@ func (r *CounterRepository) GetByStoreIDs(storeIDs []int) ([]models.Counter, err
 	return counters, rows.Err()
 }
 
+// GetByStoreIDsAndUserID mengambil data counter berdasarkan store_id tertentu dan staff user.
+func (r *CounterRepository) GetByStoreIDsAndUserID(storeIDs []int, userID int) ([]models.Counter, error) {
+	if len(storeIDs) == 0 || userID <= 0 {
+		return []models.Counter{}, nil
+	}
+
+	placeholders := make([]string, len(storeIDs))
+	args := make([]interface{}, 0, len(storeIDs)+1)
+	args = append(args, userID)
+	for i, id := range storeIDs {
+		placeholders[i] = "?"
+		args = append(args, id)
+	}
+
+	query := `
+		SELECT 
+			c.id,
+			c.store_id,
+			COALESCE(s.store_name, '') AS store_name,
+			c.counter_code,
+			c.counter_name,
+			c.ticket_prefix,
+			c.is_active,
+			c.created_at
+		FROM counters c
+		LEFT JOIN stores s ON s.store_id = c.store_id
+		INNER JOIN counter_staffs cs ON cs.counter_id = c.id
+		WHERE cs.user_id = ? AND cs.status = 'ACTIVE'
+		  AND c.store_id IN (` + strings.Join(placeholders, ",") + `)
+		  AND c.is_active = 1
+		ORDER BY c.created_at DESC, c.id DESC
+	`
+
+	rows, err := r.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var counters []models.Counter
+
+	for rows.Next() {
+		var (
+			counter   models.Counter
+			isActive  int
+			createdAt sql.NullTime
+		)
+
+		if err := rows.Scan(
+			&counter.ID,
+			&counter.StoreID,
+			&counter.StoreName,
+			&counter.CounterCode,
+			&counter.CounterName,
+			&counter.TicketPrefix,
+			&isActive,
+			&createdAt,
+		); err != nil {
+			return nil, err
+		}
+
+		counter.IsActive = isActive == 1
+		if counter.IsActive {
+			counter.StatusLabel = "Aktif"
+		} else {
+			counter.StatusLabel = "Non Aktif"
+		}
+
+		if createdAt.Valid {
+			counter.CreatedAt = createdAt.Time.Format("2006-01-02 15:04:05")
+			counter.CreatedAtDisplay = createdAt.Time.Format("02 Jan 2006 15:04:05")
+		} else {
+			counter.CreatedAt = "-"
+			counter.CreatedAtDisplay = "-"
+		}
+
+		if counter.StoreName == "" {
+			counter.StoreName = "-"
+		}
+
+		counters = append(counters, counter)
+	}
+
+	return counters, rows.Err()
+}
+
 // Create menyimpan data counter baru.
 func (r *CounterRepository) Create(params models.CounterCreateInput) error {
 	_, err := r.DB.Exec(`
