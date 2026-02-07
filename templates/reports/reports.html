@@ -85,23 +85,38 @@
                             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <h2 class="text-2xl font-semibold text-slate-900 sm:text-3xl">Recap &amp; Analytics</h2>
-                                    <p class="mt-1 text-sm text-slate-500">Monitoring real-time supplier queue performance</p>
+                                    <p class="mt-1 text-sm text-slate-500">Monitoring queue performance based on your store &amp; counter access</p>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <button class="dash-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                <form method="GET" action="{{ baseURL "/reports" }}" class="flex flex-wrap items-center gap-2">
+                                    <div class="dash-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600">
                                         <i class="bx bx-calendar text-base text-slate-400"></i>
-                                        10/25/2023
-                                        <i class="bx bx-chevron-down text-base text-slate-400"></i>
+                                        <input type="date" name="start_date" value="{{ .StartDate }}" class="bg-transparent text-sm font-semibold text-slate-600 outline-none" />
+                                        <span class="text-slate-400">-</span>
+                                        <input type="date" name="end_date" value="{{ .EndDate }}" class="bg-transparent text-sm font-semibold text-slate-600 outline-none" />
+                                    </div>
+                                    <div class="dash-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600">
+                                        <i class="bx bx-store text-base text-slate-400"></i>
+                                        <select name="store_id" class="bg-transparent text-sm font-semibold text-slate-600 outline-none">
+                                            <option value="0" {{ if eq .SelectedStoreID 0 }}selected{{ end }}>Semua Store</option>
+                                            {{ range .Stores }}
+                                                <option value="{{ .StoreID }}" {{ if eq .StoreID $.SelectedStoreID }}selected{{ end }}>{{ .StoreName }}</option>
+                                            {{ end }}
+                                        </select>
+                                    </div>
+                                    <div class="dash-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600">
+                                        <i class="bx bx-user-voice text-base text-slate-400"></i>
+                                        <select name="counter_id" class="bg-transparent text-sm font-semibold text-slate-600 outline-none">
+                                            <option value="0" {{ if eq .SelectedCounterID 0 }}selected{{ end }}>Semua Loket</option>
+                                            {{ range .Counters }}
+                                                <option value="{{ .ID }}" {{ if eq .ID $.SelectedCounterID }}selected{{ end }}>{{ .CounterName }} - {{ .CounterCode }}</option>
+                                            {{ end }}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600">
+                                        <i class="bx bx-filter text-base"></i>
+                                        Terapkan
                                     </button>
-                                    <button class="dash-card inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
-                                        All Categories
-                                        <i class="bx bx-chevron-down text-base text-slate-400"></i>
-                                    </button>
-                                    <button class="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600">
-                                        <i class="bx bx-download text-base"></i>
-                                        Export Report
-                                    </button>
-                                </div>
+                                </form>
                             </div>
 
                             <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -110,40 +125,38 @@
                                         <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
                                             <i class="bx bx-group text-lg"></i>
                                         </div>
-                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">+12% vs yest.</span>
                                     </div>
-                                    <p class="mt-4 text-sm text-slate-500">Total Suppliers Today</p>
-                                    <p class="mt-1 text-2xl font-semibold text-slate-900">124</p>
+                                    <p class="mt-4 text-sm text-slate-500">Total Suppliers</p>
+                                    <p class="mt-1 text-2xl font-semibold text-slate-900">{{ .Summary.TotalTickets }}</p>
                                 </div>
                                 <div class="dash-card rounded-2xl p-4">
                                     <div class="flex items-start justify-between">
                                         <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
                                             <i class="bx bx-hourglass text-lg"></i>
                                         </div>
-                                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-500">-4% vs yest.</span>
                                     </div>
                                     <p class="mt-4 text-sm text-slate-500">Avg. Waiting Time</p>
-                                    <p class="mt-1 text-2xl font-semibold text-slate-900">14m 20s</p>
+                                    <p class="mt-1 text-2xl font-semibold text-slate-900">{{ .Summary.AvgWaitingLabel }}</p>
                                 </div>
                                 <div class="dash-card rounded-2xl p-4">
                                     <div class="flex items-start justify-between">
                                         <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
                                             <i class="bx bx-check-circle text-lg"></i>
                                         </div>
-                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">98% Success</span>
+                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">{{ .Summary.SuccessRateLabel }}</span>
                                     </div>
                                     <p class="mt-4 text-sm text-slate-500">Served Successfully</p>
-                                    <p class="mt-1 text-2xl font-semibold text-slate-900">118</p>
+                                    <p class="mt-1 text-2xl font-semibold text-slate-900">{{ .Summary.DoneCount }}</p>
                                 </div>
                                 <div class="dash-card rounded-2xl p-4">
                                     <div class="flex items-start justify-between">
                                         <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-50 text-purple-500">
                                             <i class="bx bx-time text-lg"></i>
                                         </div>
-                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">Peak: 14:00</span>
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">Peak: {{ .Summary.PeakHourLabel }}</span>
                                     </div>
                                     <p class="mt-4 text-sm text-slate-500">Avg. Service Duration</p>
-                                    <p class="mt-1 text-2xl font-semibold text-slate-900">22m 15s</p>
+                                    <p class="mt-1 text-2xl font-semibold text-slate-900">{{ .Summary.AvgServiceLabel }}</p>
                                 </div>
                             </div>
 
@@ -168,7 +181,7 @@
 
                                 <div class="dash-card rounded-2xl p-4">
                                     <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-semibold text-slate-800">Today's Queue Log</h3>
+                                        <h3 class="text-sm font-semibold text-slate-800">Queue Log</h3>
                                         <div class="flex items-center gap-2 text-slate-400">
                                             <button class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
                                                 <i class="bx bx-search text-base"></i>
@@ -182,6 +195,7 @@
                                         <table class="w-full min-w-[640px] text-sm">
                                             <thead class="text-xs uppercase tracking-wider text-slate-400 whitespace-nowrap">
                                                 <tr>
+                                                    <th class="px-3 py-2 text-left font-semibold">No</th>
                                                     <th class="px-3 py-2 text-left font-semibold">Ticket</th>
                                                     <th class="px-3 py-2 text-left font-semibold">Category</th>
                                                     <th class="px-3 py-2 text-left font-semibold">Arrival</th>
@@ -191,74 +205,47 @@
                                                 </tr>
                                             </thead>
                                             <tbody class="divide-y divide-slate-100">
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#A-042</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">Food</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">10:15 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">10:28 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">10:45 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">30m</td>
-                                                </tr>
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#B-108</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-600">Fashion</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">10:20 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">10:40 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:15 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">55m</td>
-                                                </tr>
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#C-056</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">Toiletries</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">10:35 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">10:38 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">10:55 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">20m</td>
-                                                </tr>
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#A-043</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">Food</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">10:45 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:02 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:25 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">40m</td>
-                                                </tr>
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#A-044</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600">Food</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">11:00 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:15 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:40 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">40m</td>
-                                                </tr>
-                                                <tr class="hover:bg-slate-50/60">
-                                                    <td class="px-3 py-3 font-semibold text-orange-500">#C-057</td>
-                                                    <td class="px-3 py-3">
-                                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600">Toiletries</span>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-slate-600">11:10 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:12 AM</td>
-                                                    <td class="px-3 py-3 text-slate-600">11:30 AM</td>
-                                                    <td class="px-3 py-3 text-right text-slate-700">20m</td>
-                                                </tr>
+                                                {{ if .Logs }}
+                                                    {{ range $index, $item := .Logs }}
+                                                        <tr class="hover:bg-slate-50/60">
+                                                            <td class="px-3 py-3 font-semibold text-slate-600">{{ no $index $.Pagination.From }}</td>
+                                                            <td class="px-3 py-3 font-semibold text-orange-500">{{ $item.TicketNo }}</td>
+                                                            <td class="px-3 py-3">
+                                                                <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{{ $item.CategoryName }}</span>
+                                                            </td>
+                                                            <td class="px-3 py-3 text-slate-600">{{ $item.ArrivalLabel }}</td>
+                                                            <td class="px-3 py-3 text-slate-600">{{ $item.CallLabel }}</td>
+                                                            <td class="px-3 py-3 text-slate-600">{{ $item.DoneLabel }}</td>
+                                                            <td class="px-3 py-3 text-right text-slate-700">{{ $item.DurationLabel }}</td>
+                                                        </tr>
+                                                    {{ end }}
+                                                {{ else }}
+                                                    <tr>
+                                                        <td colspan="7" class="px-3 py-6 text-center text-sm text-slate-500">Belum ada data untuk filter ini.</td>
+                                                    </tr>
+                                                {{ end }}
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="mt-4 flex flex-col gap-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                                        <div>Showing 6 of 124 records</div>
+                                        <div>
+                                            {{ if gt .Pagination.Total 0 }}
+                                                Showing {{ .Pagination.From }}-{{ .Pagination.To }} of {{ .Pagination.Total }} records
+                                            {{ else }}
+                                                Showing 0 of 0 records
+                                            {{ end }}
+                                        </div>
                                         <div class="flex items-center gap-2">
-                                            <button class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-orange-200 hover:text-orange-600">Previous</button>
-                                            <button class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-orange-200 hover:text-orange-600">Next</button>
+                                            {{ if .Pagination.HasPrev }}
+                                                <a href="{{ baseURL .Pagination.PrevURL }}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-orange-200 hover:text-orange-600">Previous</a>
+                                            {{ else }}
+                                                <span class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-300">Previous</span>
+                                            {{ end }}
+                                            {{ if .Pagination.HasNext }}
+                                                <a href="{{ baseURL .Pagination.NextURL }}" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-orange-200 hover:text-orange-600">Next</a>
+                                            {{ else }}
+                                                <span class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-300">Next</span>
+                                            {{ end }}
                                         </div>
                                     </div>
                                 </div>
