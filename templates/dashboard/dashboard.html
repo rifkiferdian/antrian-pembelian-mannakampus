@@ -115,6 +115,32 @@
                                             ISTIRAHAT
                                         </button>
                                     </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <a
+                                            id="guest-ticket-link"
+                                            href="#"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 shadow-sm transition hover:border-orange-300 hover:bg-orange-50"
+                                        >
+                                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-orange-50 text-sm text-orange-500">
+                                                <i class="bx bx-receipt"></i>
+                                            </span>
+                                            Ambil Tiket Guest
+                                        </a>
+                                        <a
+                                            id="view-queue-link"
+                                            href="#"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600 shadow-sm transition hover:border-orange-200 hover:text-orange-600"
+                                        >
+                                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-500">
+                                                <i class="bx bx-show"></i>
+                                            </span>
+                                            View Queue
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="grid gap-4 lg:grid-cols-[2.2fr_1fr] min-h-[600px]">
@@ -289,6 +315,8 @@
         <script>
             (function () {
                 var counterSelect = document.getElementById('dashboard-counter');
+                var guestLinkEl = document.getElementById('guest-ticket-link');
+                var viewQueueLinkEl = document.getElementById('view-queue-link');
                 var actionButtons = document.querySelectorAll('[data-queue-action]');
                 var servingTicketEl = document.getElementById('serving-ticket');
                 var servingCategoryEl = document.getElementById('serving-category');
@@ -456,6 +484,26 @@
                     return Number(selected.getAttribute('data-store-id') || 0);
                 }
 
+                function setLinkState(linkEl, href, enabled) {
+                    if (!linkEl) return;
+                    if (enabled) {
+                        linkEl.setAttribute('href', href);
+                        linkEl.classList.remove('pointer-events-none', 'opacity-60');
+                        linkEl.setAttribute('aria-disabled', 'false');
+                    } else {
+                        linkEl.setAttribute('href', '#');
+                        linkEl.classList.add('pointer-events-none', 'opacity-60');
+                        linkEl.setAttribute('aria-disabled', 'true');
+                    }
+                }
+
+                function updateExternalLinks() {
+                    var storeId = getSelectedStoreId();
+                    var enabled = storeId > 0;
+                    setLinkState(guestLinkEl, '/guest/' + storeId, enabled);
+                    setLinkState(viewQueueLinkEl, '/view-queue/' + storeId, enabled);
+                }
+
                 async function fetchState(counterId) {
                     if (!counterId) return;
                     try {
@@ -552,6 +600,7 @@
                         var counterId = Number(counterSelect.value || 0);
                         fetchState(counterId);
                         connectWS();
+                        updateExternalLinks();
                     });
                 }
 
@@ -560,6 +609,7 @@
                     startServiceTimer(initialCalledAt);
                 }
 
+                updateExternalLinks();
                 connectWS();
             })();
         </script>
