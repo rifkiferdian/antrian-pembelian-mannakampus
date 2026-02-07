@@ -102,15 +102,15 @@
                                         </select>
                                     </div>
                                     <div class="flex items-center rounded-full border border-slate-200 bg-white/80 p-1 shadow-sm">
-                                        <button type="button" class="inline-flex items-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-white shadow-sm transition hover:bg-orange-600">
-                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-sm">
+                                        <button id="status-active-btn" type="button" data-counter-status="ACTIVE" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] transition">
+                                            <span id="status-active-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-sm">
                                                 <i class="bx bx-check"></i>
                                             </span>
                                             AKTIF
                                         </button>
-                                        <button type="button" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] text-slate-500 transition hover:bg-slate-100">
-                                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-500">
-                                                <i class="bx bx-coffee"></i>
+                                        <button id="status-rest-btn" type="button" data-counter-status="REST" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] transition">
+                                            <span style="color: #ea580c;" id="status-rest-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-sm">
+                                                <i style="color: #ea580c;" class="bx bx-coffee"></i>
                                             </span>
                                             ISTIRAHAT
                                         </button>
@@ -330,6 +330,10 @@
                 var guestLinkEl = document.getElementById('guest-ticket-link');
                 var viewQueueLinkEl = document.getElementById('view-queue-link');
                 var actionButtons = document.querySelectorAll('[data-queue-action][data-queue-static="true"]');
+                var statusActiveBtn = document.getElementById('status-active-btn');
+                var statusRestBtn = document.getElementById('status-rest-btn');
+                var statusActiveIcon = document.getElementById('status-active-icon');
+                var statusRestIcon = document.getElementById('status-rest-icon');
                 var servingTicketEl = document.getElementById('serving-ticket');
                 var servingCategoryEl = document.getElementById('serving-category');
                 var servingEmptyEl = document.getElementById('serving-empty');
@@ -337,6 +341,7 @@
                 var waitingCountEl = document.getElementById('waiting-count');
                 var waitingListEl = document.getElementById('waiting-list');
                 var timerInterval;
+                var currentStaffStatus = 'ACTIVE';
 
                 var endpoints = {
                     next: '/dashboard/queue/next',
@@ -344,6 +349,7 @@
                     done: '/dashboard/queue/done',
                     skip: '/dashboard/queue/skip',
                     'recall-skipped': '/dashboard/queue/recall-skipped',
+                    status: '/dashboard/counter/status',
                 };
 
                 function notify(type, message) {
@@ -364,11 +370,95 @@
                 function setLoading(button, isLoading) {
                     if (!button) return;
                     button.disabled = isLoading;
+                    button.setAttribute('data-loading', isLoading ? '1' : '0');
                     if (isLoading) {
                         button.classList.add('opacity-70', 'cursor-wait');
                     } else {
                         button.classList.remove('opacity-70', 'cursor-wait');
                     }
+                }
+
+                function setQueueButtonsEnabled(enabled) {
+                    actionButtons.forEach(function (button) {
+                        if (!button) return;
+                        if (button.getAttribute('data-loading') === '1') return;
+                        button.disabled = !enabled;
+                        if (enabled) {
+                            button.classList.remove('opacity-60', 'cursor-not-allowed');
+                        } else {
+                            button.classList.add('opacity-60', 'cursor-not-allowed');
+                        }
+                    });
+                }
+
+                function toggleClasses(el, addList, removeList) {
+                    if (!el) return;
+                    if (removeList && removeList.length) {
+                        removeList.forEach(function (cls) {
+                            el.classList.remove(cls);
+                        });
+                    }
+                    if (addList && addList.length) {
+                        addList.forEach(function (cls) {
+                            el.classList.add(cls);
+                        });
+                    }
+                }
+
+                function applyStaffStatus(rawStatus) {
+                    var status = (rawStatus || '').toString().trim().toUpperCase();
+                    if (status !== 'REST') {
+                        status = 'ACTIVE';
+                    }
+                    currentStaffStatus = status;
+
+                    var activeOn = ['bg-orange-500', 'text-white', 'shadow-sm', 'hover:bg-orange-600'];
+                    var activeOff = ['text-slate-500', 'hover:bg-slate-100'];
+                    var restOn = ['bg-slate-100', 'text-slate-700', 'shadow-sm'];
+                    var restOff = ['text-slate-500', 'hover:bg-slate-100'];
+                    var iconOn = ['bg-white/20', 'text-white'];
+                    var iconOff = ['bg-slate-100', 'text-slate-500'];
+
+                    if (statusActiveBtn) {
+                        if (status === 'ACTIVE') {
+                            toggleClasses(statusActiveBtn, activeOn, activeOff);
+                            toggleClasses(statusActiveIcon, iconOn, iconOff);
+                            statusActiveBtn.setAttribute('aria-pressed', 'true');
+                        } else {
+                            toggleClasses(statusActiveBtn, activeOff, activeOn);
+                            toggleClasses(statusActiveIcon, iconOff, iconOn);
+                            statusActiveBtn.setAttribute('aria-pressed', 'false');
+                        }
+                    }
+
+                    if (statusRestBtn) {
+                        if (status === 'REST') {
+                            toggleClasses(statusRestBtn, restOn, restOff);
+                            toggleClasses(statusRestIcon, iconOn, iconOff);
+                            statusRestBtn.setAttribute('aria-pressed', 'true');
+                        } else {
+                            toggleClasses(statusRestBtn, restOff, restOn);
+                            toggleClasses(statusRestIcon, iconOff, iconOn);
+                            statusRestBtn.setAttribute('aria-pressed', 'false');
+                        }
+                    }
+
+                    setQueueButtonsEnabled(status === 'ACTIVE');
+                }
+
+                function setStatusButtonsLoading(isLoading) {
+                    if (statusActiveBtn) statusActiveBtn.disabled = isLoading;
+                    if (statusRestBtn) statusRestBtn.disabled = isLoading;
+                    var buttons = [statusActiveBtn, statusRestBtn];
+                    buttons.forEach(function (button) {
+                        if (!button) return;
+                        button.setAttribute('data-loading', isLoading ? '1' : '0');
+                        if (isLoading) {
+                            button.classList.add('opacity-70', 'cursor-wait');
+                        } else {
+                            button.classList.remove('opacity-70', 'cursor-wait');
+                        }
+                    });
                 }
 
                 function formatDuration(totalSeconds) {
@@ -537,6 +627,9 @@
                         }
                         renderServing(data.serving || {});
                         renderWaiting(data.waiting_items || [], data.waiting_total || 0);
+                        if (typeof data.staff_status === 'string' && data.staff_status !== '') {
+                            applyStaffStatus(data.staff_status);
+                        }
                     } catch (err) {
                         notify('error', err.message || 'Terjadi kesalahan');
                     }
@@ -587,6 +680,10 @@
                         notify('warning', 'Pilih loket terlebih dahulu');
                         return;
                     }
+                    if (currentStaffStatus === 'REST') {
+                        notify('warning', 'Loket sedang istirahat');
+                        return;
+                    }
 
                     var endpoint = endpoints[action];
                     if (!endpoint) return;
@@ -625,12 +722,60 @@
                     }
                 }
 
+                async function updateStaffStatus(status) {
+                    var counterId = counterSelect ? Number(counterSelect.value || 0) : 0;
+                    if (!counterId) {
+                        notify('warning', 'Pilih loket terlebih dahulu');
+                        return;
+                    }
+
+                    var normalized = (status || '').toString().trim().toUpperCase();
+                    if (normalized !== 'ACTIVE' && normalized !== 'REST') {
+                        notify('warning', 'Status tidak valid');
+                        return;
+                    }
+                    if (normalized === currentStaffStatus) {
+                        return;
+                    }
+
+                    setStatusButtonsLoading(true);
+                    try {
+                        var response = await fetch(endpoints.status, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ counter_id: counterId, status: normalized }),
+                        });
+                        var data = await response.json();
+                        if (!response.ok || !data.ok) {
+                            throw new Error(data.message || 'Gagal memperbarui status loket');
+                        }
+                        applyStaffStatus(data.status || normalized);
+                        notify('success', data.message || 'Status loket diperbarui');
+                    } catch (err) {
+                        notify('error', err.message || 'Terjadi kesalahan');
+                    } finally {
+                        setStatusButtonsLoading(false);
+                    }
+                }
+
                 actionButtons.forEach(function (button) {
                     button.addEventListener('click', function () {
                         var action = button.getAttribute('data-queue-action');
                         sendAction(action, button);
                     });
                 });
+
+                if (statusActiveBtn) {
+                    statusActiveBtn.addEventListener('click', function () {
+                        updateStaffStatus('ACTIVE');
+                    });
+                }
+
+                if (statusRestBtn) {
+                    statusRestBtn.addEventListener('click', function () {
+                        updateStaffStatus('REST');
+                    });
+                }
 
                 if (waitingListEl) {
                     waitingListEl.addEventListener('click', function (event) {
@@ -658,8 +803,18 @@
                     startServiceTimer(initialCalledAt);
                 }
 
+                applyStaffStatus(currentStaffStatus);
                 updateExternalLinks();
                 connectWS();
+
+                if (counterSelect) {
+                    var initialCounterId = Number(counterSelect.value || 0);
+                    if (initialCounterId) {
+                        fetchState(initialCounterId);
+                    } else {
+                        setQueueButtonsEnabled(false);
+                    }
+                }
             })();
         </script>
     </body>

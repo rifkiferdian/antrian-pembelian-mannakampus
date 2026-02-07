@@ -245,7 +245,7 @@ func (r *CounterRepository) GetByStoreIDsAndUserID(storeIDs []int, userID int) (
 		FROM counters c
 		LEFT JOIN stores s ON s.store_id = c.store_id
 		INNER JOIN counter_staffs cs ON cs.counter_id = c.id
-		WHERE cs.user_id = ? AND cs.status = 'ACTIVE'
+		WHERE cs.user_id = ? AND cs.status IN ('ACTIVE', 'REST')
 		  AND c.store_id IN (` + strings.Join(placeholders, ",") + `)
 		  AND c.is_active = 1
 		ORDER BY c.created_at DESC, c.id DESC

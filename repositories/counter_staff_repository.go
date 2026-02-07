@@ -125,6 +125,52 @@ func (r *CounterStaffRepository) Update(params models.CounterStaffUpdateInput) e
 	return err
 }
 
+// GetStatusByCounterAndUser mengambil status counter staff berdasarkan counter dan user.
+func (r *CounterStaffRepository) GetStatusByCounterAndUser(counterID, userID int) (string, bool, error) {
+	if counterID <= 0 || userID <= 0 {
+		return "", false, nil
+	}
+
+	var status string
+	err := r.DB.QueryRow(`
+		SELECT status
+		FROM counter_staffs
+		WHERE counter_id = ? AND user_id = ?
+		LIMIT 1
+	`, counterID, userID).Scan(&status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+
+	return status, true, nil
+}
+
+// UpdateStatusByCounterAndUser memperbarui status staff berdasarkan counter dan user.
+func (r *CounterStaffRepository) UpdateStatusByCounterAndUser(counterID, userID int, status string) (bool, error) {
+	if counterID <= 0 || userID <= 0 {
+		return false, nil
+	}
+
+	res, err := r.DB.Exec(`
+		UPDATE counter_staffs
+		SET status = ?
+		WHERE counter_id = ? AND user_id = ?
+	`, status, counterID, userID)
+	if err != nil {
+		return false, err
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return affected > 0, nil
+}
+
 // Delete menghapus counter staff berdasarkan ID.
 func (r *CounterStaffRepository) Delete(id int) error {
 	_, err := r.DB.Exec(`DELETE FROM counter_staffs WHERE id = ?`, id)

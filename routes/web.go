@@ -27,6 +27,7 @@ func RegisterWebRoutes(r *gin.Engine) {
 	{
 		auth.GET("/dashboard", controllers.DashboardIndex)
 		auth.GET("/dashboard/queue/state", controllers.DashboardQueueState)
+		auth.POST("/dashboard/counter/status", controllers.DashboardCounterStatus)
 		auth.POST("/dashboard/queue/next", controllers.QueueCallNext)
 		auth.POST("/dashboard/queue/recall", controllers.QueueRecall)
 		auth.POST("/dashboard/queue/done", controllers.QueueDone)

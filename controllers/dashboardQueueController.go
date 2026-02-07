@@ -35,6 +35,18 @@ func DashboardQueueState(c *gin.Context) {
 		return
 	}
 
+	var staffStatus string
+	userID := getSessionUserID(c)
+	if userID > 0 {
+		counterStaffRepo := &repositories.CounterStaffRepository{DB: config.DB}
+		status, _, statusErr := counterStaffRepo.GetStatusByCounterAndUser(counter.ID, userID)
+		if statusErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": statusErr.Error()})
+			return
+		}
+		staffStatus = status
+	}
+
 	serving, waitingItems, waitingTotal, err := buildDashboardQueueState(counter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": err.Error()})
@@ -44,6 +56,7 @@ func DashboardQueueState(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"ok":            true,
 		"counter_id":    counter.ID,
+		"staff_status":  staffStatus,
 		"serving":       serving,
 		"waiting_items": waitingItems,
 		"waiting_total": waitingTotal,

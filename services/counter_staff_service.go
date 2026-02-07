@@ -70,6 +70,43 @@ func (s *CounterStaffService) DeleteCounterStaff(id int) error {
 	return s.Repo.Delete(id)
 }
 
+func (s *CounterStaffService) GetStatusByCounterAndUser(counterID, userID int) (string, error) {
+	if counterID <= 0 || userID <= 0 {
+		return "", errors.New("counter atau user tidak valid")
+	}
+
+	status, _, err := s.Repo.GetStatusByCounterAndUser(counterID, userID)
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
+}
+
+func (s *CounterStaffService) UpdateStatusByCounterAndUser(counterID, userID int, status string) (string, error) {
+	if counterID <= 0 || userID <= 0 {
+		return "", errors.New("counter atau user tidak valid")
+	}
+
+	normalized, err := normalizeCounterStaffStatus(status)
+	if err != nil {
+		return "", err
+	}
+	if normalized != "ACTIVE" && normalized != "REST" {
+		return "", errors.New("status harus aktif atau istirahat")
+	}
+
+	updated, err := s.Repo.UpdateStatusByCounterAndUser(counterID, userID, normalized)
+	if err != nil {
+		return "", err
+	}
+	if !updated {
+		return "", errors.New("staff belum terdaftar pada loket ini")
+	}
+
+	return normalized, nil
+}
+
 func normalizeCounterStaffStatus(status string) (string, error) {
 	val := strings.TrimSpace(strings.ToUpper(status))
 
