@@ -167,6 +167,42 @@ func (r *ReportRepository) GetPeakHour(params ReportQuery) (int, bool, error) {
 	return int(peakHour.Int64), true, nil
 }
 
+// GetHourlyCounts mengambil jumlah tiket per jam (0-23).
+func (r *ReportRepository) GetHourlyCounts(params ReportQuery) ([]int, error) {
+	where, args := buildReportFilters(params)
+	query := `
+		SELECT
+			HOUR(qt.created_at) AS hour_value,
+			COUNT(*) AS total_count
+		FROM queue_tickets qt
+		LEFT JOIN counters c ON c.id = qt.counter_id
+		LEFT JOIN service_categories sc ON sc.ticket_prefix = c.ticket_prefix
+		WHERE ` + where + `
+		GROUP BY HOUR(qt.created_at)
+		ORDER BY hour_value ASC
+	`
+
+	rows, err := r.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	counts := make([]int, 24)
+	for rows.Next() {
+		var hourValue int
+		var total int
+		if err := rows.Scan(&hourValue, &total); err != nil {
+			return nil, err
+		}
+		if hourValue >= 0 && hourValue < 24 {
+			counts[hourValue] = total
+		}
+	}
+
+	return counts, rows.Err()
+}
+
 // GetQueueLogs mengambil data log antrian sesuai filter.
 func (r *ReportRepository) GetQueueLogs(params ReportQuery, limit, offset int) ([]ReportQueueRow, int, error) {
 	where, args := buildReportFilters(params)

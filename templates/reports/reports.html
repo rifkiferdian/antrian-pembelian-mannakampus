@@ -50,6 +50,7 @@
 
         <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
         <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
         <style>
             .dash-surface {
@@ -168,15 +169,7 @@
                                             <i class="bx bx-info-circle text-base"></i>
                                         </span>
                                     </div>
-                                    <div class="mt-4 h-56 rounded-2xl border border-dashed border-slate-200 bg-white/60"></div>
-                                    <div class="mt-4 flex items-center justify-between text-[11px] text-slate-400">
-                                        <span>08:00</span>
-                                        <span>10:00</span>
-                                        <span>12:00</span>
-                                        <span>14:00</span>
-                                        <span>16:00</span>
-                                        <span>18:00</span>
-                                    </div>
+                                    <div id="busy-hours-chart" class="mt-4 h-56 rounded-2xl border border-dashed border-slate-200 bg-white/60"></div>
                                 </div>
 
                                 <div class="dash-card rounded-2xl p-4">
@@ -265,6 +258,58 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                var busyChartEl = document.getElementById('busy-hours-chart');
+                if (busyChartEl && window.ApexCharts) {
+                    var labels = {{ .BusyLabels }};
+                    var series = {{ .BusySeries }};
+                    var options = {
+                        chart: {
+                            type: 'area',
+                            height: 220,
+                            toolbar: { show: false },
+                            zoom: { enabled: false }
+                        },
+                        series: [{
+                            name: 'Total Antrian',
+                            data: series
+                        }],
+                        xaxis: {
+                            categories: labels,
+                            labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
+                            axisBorder: { show: false },
+                            axisTicks: { show: false }
+                        },
+                        yaxis: {
+                            labels: { style: { colors: '#94a3b8', fontSize: '11px' } }
+                        },
+                        stroke: {
+                            curve: 'smooth',
+                            width: 3
+                        },
+                        colors: ['#f57c00'],
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                shadeIntensity: 0.5,
+                                opacityFrom: 0.35,
+                                opacityTo: 0.05,
+                                stops: [0, 90, 100]
+                            }
+                        },
+                        grid: {
+                            borderColor: '#e2e8f0',
+                            strokeDashArray: 4
+                        },
+                        tooltip: {
+                            theme: 'light'
+                        },
+                        dataLabels: { enabled: false }
+                    };
+
+                    var busyChart = new ApexCharts(busyChartEl, options);
+                    busyChart.render();
+                }
+
                 var sidebar = document.getElementById('app-sidebar');
                 var overlay = document.getElementById('sidebar-overlay');
                 var toggleButtons = document.querySelectorAll('[data-sidebar-toggle]');

@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -91,6 +93,7 @@ func ReportsIndex(c *gin.Context) {
 	summary := models.ReportSummary{}
 	logItems := make([]models.ReportQueueItem, 0)
 	pagination := models.ReportPagination{Page: page, PerPage: perPage}
+	hourlyCounts := make([]int, 24)
 
 	if len(storeIDs) > 0 && len(allowedCounterIDs) > 0 {
 		params := repositories.ReportQuery{
@@ -141,6 +144,10 @@ func ReportsIndex(c *gin.Context) {
 
 		logItems = buildReportLogItems(rows)
 		pagination = buildReportPagination(page, perPage, total, selectedStoreID, selectedCounterID, selectedCategoryID, startDate, endDate)
+
+		if counts, err := reportRepo.GetHourlyCounts(params); err == nil && len(counts) == 24 {
+			hourlyCounts = counts
+		}
 	} else {
 		summary.PeakHourLabel = "-"
 	}
@@ -152,6 +159,13 @@ func ReportsIndex(c *gin.Context) {
 	} else {
 		summary.SuccessRateLabel = "0% Success"
 	}
+
+	labels := make([]string, 24)
+	for i := 0; i < 24; i++ {
+		labels[i] = fmt.Sprintf("%02d:00", i)
+	}
+	labelsJSON, _ := json.Marshal(labels)
+	seriesJSON, _ := json.Marshal(hourlyCounts)
 
 	Render(c, "reports.html", gin.H{
 		"Title":              "Reports",
@@ -167,6 +181,8 @@ func ReportsIndex(c *gin.Context) {
 		"SelectedCategoryID": selectedCategoryID,
 		"StartDate":          startDate.Format(reportDateLayout),
 		"EndDate":            endDate.Format(reportDateLayout),
+		"BusyLabels":         template.JS(labelsJSON),
+		"BusySeries":         template.JS(seriesJSON),
 	})
 }
 
