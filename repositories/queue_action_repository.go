@@ -54,6 +54,24 @@ func (r *QueueActionRepository) GetCurrentCalledTicket(tx *sql.Tx, storeID, coun
 	return id, ticketNo, nil
 }
 
+func (r *QueueActionRepository) GetSkippedTicketByID(tx *sql.Tx, storeID, counterID int, ticketID int64, ticketDate time.Time) (int64, string, error) {
+	var (
+		id       int64
+		ticketNo string
+	)
+	err := tx.QueryRow(`
+		SELECT id, ticket_no
+		FROM queue_tickets
+		WHERE id = ? AND store_id = ? AND counter_id = ? AND ticket_date = ? AND status = 'SKIPPED'
+		LIMIT 1
+		FOR UPDATE
+	`, ticketID, storeID, counterID, ticketDate.Format("2006-01-02")).Scan(&id, &ticketNo)
+	if err != nil {
+		return 0, "", err
+	}
+	return id, ticketNo, nil
+}
+
 func (r *QueueActionRepository) MarkCalled(tx *sql.Tx, ticketID int64, userID int, calledAt time.Time) error {
 	_, err := tx.Exec(`
 		UPDATE queue_tickets

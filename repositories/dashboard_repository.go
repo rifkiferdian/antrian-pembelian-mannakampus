@@ -68,6 +68,7 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 
 	rows, err := r.DB.Query(`
 		SELECT
+			qt.id,
 			qt.ticket_no,
 			qt.queue_number,
 			qt.created_at,
@@ -104,6 +105,7 @@ func (r *DashboardRepository) GetWaitingTickets(storeID, counterID int, ticketDa
 			counterName sql.NullString
 		)
 		if err := rows.Scan(
+			&item.TicketID,
 			&item.TicketNo,
 			&item.QueueNumber,
 			&createdAt,

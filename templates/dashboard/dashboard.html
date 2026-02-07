@@ -168,25 +168,25 @@
                                     </div>
 
                                     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                        <button type="button" data-queue-action="next" class="flex h-36 flex-col items-center justify-center gap-2 rounded-3xl bg-orange-500 px-4 text-center text-base font-semibold text-white shadow-sm transition hover:bg-orange-600">
+                                        <button type="button" data-queue-action="next" data-queue-static="true" class="flex h-36 flex-col items-center justify-center gap-2 rounded-3xl bg-orange-500 px-4 text-center text-base font-semibold text-white shadow-sm transition hover:bg-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-2xl">
                                                 <i class="bx bx-chevron-right"></i>
                                             </span>
                                             Berikutnya
                                         </button>
-                                        <button type="button" data-queue-action="recall" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="recall" data-queue-static="true" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-refresh"></i>
                                             </span>
                                             Panggil Ulang
                                         </button>
-                                        <button type="button" data-queue-action="done" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="done" data-queue-static="true" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-check"></i>
                                             </span>
                                             Selesai
                                         </button>
-                                        <button type="button" data-queue-action="skip" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
+                                        <button type="button" data-queue-action="skip" data-queue-static="true" class="dash-card flex h-36 flex-col items-center justify-center gap-2 rounded-3xl px-4 text-center text-base font-semibold text-slate-600 transition hover:border-orange-200 hover:text-orange-600">
                                             <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
                                                 <i class="bx bx-skip-next"></i>
                                             </span>
@@ -225,6 +225,12 @@
                                                                 </div>
                                                                 <p class="text-xl font-semibold text-slate-800">{{ $item.TicketNo }}</p>
                                                                 <p class="text-xs text-slate-500">{{ $item.CategoryName }}</p>
+                                                                {{ if eq $item.Status "SKIPPED" }}
+                                                                    <button type="button" data-queue-action="recall-skipped" data-ticket-id="{{ $item.TicketID }}" class="mt-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600 transition hover:border-rose-300 hover:bg-rose-50">
+                                                                        <i class="bx bx-undo text-xs"></i>
+                                                                        Panggil Lagi
+                                                                    </button>
+                                                                {{ end }}
                                                             </div>
                                                             <p class="text-xs font-semibold text-slate-500">Tunggu<br><span class="text-sm text-slate-700">{{ $item.WaitingMinutes }}m</span></p>
                                                         </div>
@@ -234,7 +240,7 @@
                                                         <div class="flex items-center justify-between">
                                                             <div>
                                                                 <div class="flex items-center gap-2">
-                                                                    <p class="text-lg font-semibold text-slate-800">{{ $item.TicketNo }}</p>
+                                                                <p class="text-lg font-semibold text-slate-800">{{ $item.TicketNo }}</p>
                                                                     {{ if $item.StatusLabel }}
                                                                         <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] {{ $item.StatusClass }}">
                                                                             {{ $item.StatusLabel }}
@@ -242,6 +248,12 @@
                                                                     {{ end }}
                                                                 </div>
                                                                 <p class="text-xs text-slate-500">{{ $item.CategoryName }}</p>
+                                                                {{ if eq $item.Status "SKIPPED" }}
+                                                                    <button type="button" data-queue-action="recall-skipped" data-ticket-id="{{ $item.TicketID }}" class="mt-2 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600 transition hover:border-rose-300 hover:bg-rose-50">
+                                                                        <i class="bx bx-undo text-xs"></i>
+                                                                        Panggil Lagi
+                                                                    </button>
+                                                                {{ end }}
                                                             </div>
                                                             <span class="text-xs font-semibold text-slate-500">{{ $item.WaitingMinutes }}m</span>
                                                         </div>
@@ -317,7 +329,7 @@
                 var counterSelect = document.getElementById('dashboard-counter');
                 var guestLinkEl = document.getElementById('guest-ticket-link');
                 var viewQueueLinkEl = document.getElementById('view-queue-link');
-                var actionButtons = document.querySelectorAll('[data-queue-action]');
+                var actionButtons = document.querySelectorAll('[data-queue-action][data-queue-static="true"]');
                 var servingTicketEl = document.getElementById('serving-ticket');
                 var servingCategoryEl = document.getElementById('serving-category');
                 var servingEmptyEl = document.getElementById('serving-empty');
@@ -331,6 +343,7 @@
                     recall: '/dashboard/queue/recall',
                     done: '/dashboard/queue/done',
                     skip: '/dashboard/queue/skip',
+                    'recall-skipped': '/dashboard/queue/recall-skipped',
                 };
 
                 function notify(type, message) {
@@ -425,6 +438,14 @@
                     var wrapper = document.createElement('div');
                     var statusLabel = item && item.status_label ? String(item.status_label) : '';
                     var statusClass = item && item.status_class ? String(item.status_class) : 'bg-slate-100 text-slate-500';
+                    var isSkipped = item && item.status === 'SKIPPED';
+                    var ticketId = item && item.ticket_id ? Number(item.ticket_id) : 0;
+                    var recallButton = isSkipped && ticketId
+                        ? '<button type="button" data-queue-action="recall-skipped" data-ticket-id="' + ticketId + '" class="mt-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600 transition hover:border-rose-300 hover:bg-rose-50">' +
+                          '<i class="bx bx-undo text-xs"></i>' +
+                          'Panggil Lagi' +
+                          '</button>'
+                        : '';
                     var statusBadge = statusLabel
                         ? '<span class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] ' + statusClass + '">' + statusLabel + '</span>'
                         : '';
@@ -439,6 +460,7 @@
                             '</div>' +
                             '<p class="text-xl font-semibold text-slate-800">' + item.ticket_no + '</p>' +
                             '<p class="text-xs text-slate-500">' + (item.category_name || '-') + '</p>' +
+                            recallButton +
                             '</div>' +
                             '<p class="text-xs font-semibold text-slate-500">Tunggu<br><span class="text-sm text-slate-700">' + item.waiting_minutes + 'm</span></p>' +
                             '</div>';
@@ -452,6 +474,7 @@
                             statusBadge +
                             '</div>' +
                             '<p class="text-xs text-slate-500">' + (item.category_name || '-') + '</p>' +
+                            recallButton +
                             '</div>' +
                             '<span class="text-xs font-semibold text-slate-500">' + item.waiting_minutes + 'm</span>' +
                             '</div>';
@@ -558,7 +581,7 @@
                     };
                 }
 
-                async function sendAction(action, button) {
+                async function sendAction(action, button, extraPayload) {
                     var counterId = counterSelect ? Number(counterSelect.value || 0) : 0;
                     if (!counterId) {
                         notify('warning', 'Pilih loket terlebih dahulu');
@@ -568,12 +591,26 @@
                     var endpoint = endpoints[action];
                     if (!endpoint) return;
 
+                    if (action === 'recall-skipped') {
+                        var ticketId = extraPayload && Number(extraPayload.ticket_id || 0);
+                        if (!ticketId) {
+                            notify('warning', 'Ticket tidak valid');
+                            return;
+                        }
+                    }
+
                     setLoading(button, true);
                     try {
+                        var payload = { counter_id: counterId };
+                        if (extraPayload && typeof extraPayload === 'object') {
+                            if (extraPayload.ticket_id) {
+                                payload.ticket_id = extraPayload.ticket_id;
+                            }
+                        }
                         var response = await fetch(endpoint, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ counter_id: counterId }),
+                            body: JSON.stringify(payload),
                         });
                         var data = await response.json();
                         if (!response.ok || !data.ok) {
@@ -594,6 +631,18 @@
                         sendAction(action, button);
                     });
                 });
+
+                if (waitingListEl) {
+                    waitingListEl.addEventListener('click', function (event) {
+                        var target = event.target;
+                        if (!target) return;
+                        var button = target.closest('button[data-queue-action][data-ticket-id]');
+                        if (!button || !waitingListEl.contains(button)) return;
+                        var action = button.getAttribute('data-queue-action');
+                        var ticketId = Number(button.getAttribute('data-ticket-id') || 0);
+                        sendAction(action, button, { ticket_id: ticketId });
+                    });
+                }
 
                 if (counterSelect) {
                     counterSelect.addEventListener('change', function () {

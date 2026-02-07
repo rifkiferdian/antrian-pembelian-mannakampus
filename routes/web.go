@@ -31,6 +31,7 @@ func RegisterWebRoutes(r *gin.Engine) {
 		auth.POST("/dashboard/queue/recall", controllers.QueueRecall)
 		auth.POST("/dashboard/queue/done", controllers.QueueDone)
 		auth.POST("/dashboard/queue/skip", controllers.QueueSkip)
+		auth.POST("/dashboard/queue/recall-skipped", controllers.QueueRecallSkipped)
 		auth.GET("/reports", controllers.ReportsIndex)
 
 		auth.GET("/users", middleware.RequirePermission("user_management_access"), controllers.UserIndex)

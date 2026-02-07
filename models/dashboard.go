@@ -12,6 +12,7 @@ type DashboardServing struct {
 
 // DashboardQueueItem menampung daftar antrian menunggu di sidebar dashboard.
 type DashboardQueueItem struct {
+	TicketID       int64  `json:"ticket_id"`
 	TicketNo       string `json:"ticket_no"`
 	CategoryName   string `json:"category_name"`
 	QueueNumber    int    `json:"queue_number"`
