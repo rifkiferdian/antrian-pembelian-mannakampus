@@ -1,156 +1,103 @@
 <!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
 
-        <title>{{ .Title }} | Sistem Antrean Supplier</title>
+<style>
+/* PALING PENTING */
+@page {
+  size: 80mm auto;
+  margin: 0mm;     /* HAPUS margin printer */
+}
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+html, body{
+  margin:0 !important;
+  padding:0 !important;
+  width:72mm;
+  font-family: Arial, sans-serif;
+}
 
-        <script>
-            window.tailwind = window.tailwind || {};
-            window.tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            display: ["Manrope", "ui-sans-serif", "system-ui"],
-                        },
-                        colors: {
-                            brand: {
-                                50: "#fff7ed",
-                                100: "#ffedd5",
-                                200: "#fed7aa",
-                                300: "#fdba74",
-                                400: "#fb923c",
-                                500: "#f57c00",
-                                600: "#e56f00",
-                                700: "#c25700",
-                                800: "#9a4200",
-                                900: "#7a3200",
-                            },
-                        },
-                        boxShadow: {
-                            soft: "0 16px 30px -20px rgba(15, 23, 42, 0.35)",
-                        },
-                    },
-                },
-            };
-        </script>
-        <script src="https://cdn.tailwindcss.com"></script>
+/* Hilangkan spacing default */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-        <style>
-            .ticket-bg {
-                background: radial-gradient(120% 120% at 50% -10%, #ffffff 0%, #f9f7f3 45%, #f2f4f7 100%);
-            }
-            .ticket-card {
-                background: #ffffff;
-                border: 1px solid rgba(226, 232, 240, 0.7);
-                box-shadow: 0 16px 28px -22px rgba(15, 23, 42, 0.35);
-            }
-            @page {
-                size: 80mm auto;
-                margin: 0 2.5mm 2.5mm 2.5mm;
-            }
-            @media print {
-                .no-print {
-                    display: none !important;
-                }
-                html,
-                body {
-                    width: 80mm;
-                    background: #ffffff;
-                    font-size: 12px;
-                    line-height: 1.1;
-                    margin: 0;
-                    padding: 0;
-                }
-                main {
-                    min-height: auto;
-                    max-width: none;
-                    padding: 0;
-                    margin: 0;
-                }
-                .ticket-bg {
-                    background: #ffffff;
-                }
-                .ticket-card {
-                    border: none;
-                    box-shadow: none;
-                    padding: 0;
-                    padding-top: 0;
-                    border-radius: 0;
-                }
-                .ticket-title {
-                    margin-top: 0;
-                    font-size: 13px;
-                    letter-spacing: 0.18em;
-                }
-                .ticket-store {
-                    margin-top: 1px;
-                    font-size: 11px;
-                }
-                .ticket-number-box {
-                    margin-top: 4px;
-                    padding: 0 3px;
-                    border-radius: 8px;
-                }
-                .ticket-number-label {
-                    font-size: 10px;
-                    letter-spacing: 0.18em;
-                }
-                .ticket-number {
-                    margin-top: 1px;
-                    font-size: 26px;
-                    letter-spacing: 0.22em;
-                }
-                .ticket-meta {
-                    margin-top: 1px;
-                    font-size: 11px;
-                }
-                .ticket-info {
-                    margin-top: 6px;
-                    gap: 2px;
-                    font-size: 11px;
-                }
-            }
-        </style>
-    </head>
+/* Receipt */
+.receipt{
+  width:72mm;
+  padding:0 2mm 2mm 2mm; /* TANPA padding atas */
+  line-height:1;
+}
 
-    <body class="ticket-bg min-h-screen font-display text-slate-800">
-        <main class="mx-auto flex min-h-screen w-full max-w-lg flex-col px-4 py-10 sm:px-6">
-            <div class="ticket-card rounded-[28px] p-6 text-center sm:p-8">
-                <p class="ticket-store mt-1 text-xs text-slate-500">Mannakampus {{ .Ticket.StoreName }}</p>
-                <h1 class="ticket-title mt-0 text-lg font-bold uppercase text-slate-900">Tiket Antrean Pembelian</h1>
+/* Text style */
+.center{ text-align:center; }
+.bold{ font-weight:700; }
 
-                <div class="ticket-number-box mt-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-0">
-                    <p class="ticket-number-label text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Nomor Anda</p>
-                    <p class="ticket-number mt-3 text-4xl font-extrabold tracking-widest text-brand-500">{{ .Ticket.TicketNo }}</p>
-                    <p class="ticket-meta mt-3 text-xs text-slate-900">Loket {{ .Ticket.CounterName }}</p>
-                </div>
+.brand{
+  font-size:12px;
+  margin-top:-2mm;   /* TARIK NAIK lagi */
+}
 
-                <div class="ticket-info grid gap-3 text-left text-x text-slate-500">
-                    <div class="flex items-center justify-between">
-                        <span>Waktu</span>
-                        <span class="font-semibold text-slate-900">{{ .Ticket.CreatedAtDisplay }}</span>
-                    </div>
-                    <!-- <div class="flex items-center justify-between">
-                        <span>Loket</span>
-                        <span class="font-semibold text-slate-900">{{ .Ticket.CounterName }}</span>
-                    </div> -->
-                </div>
+.queue{
+  font-size:48px;
+  font-weight:800;
+  margin:1mm 0;
+}
 
-                <div class="no-print mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                    <button type="button" onclick="window.print()" class="inline-flex items-center justify-center rounded-full bg-brand-500 px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-soft transition hover:bg-brand-600">
-                        Cetak Tiket
-                    </button>
-                    <a href="/guest/{{ .Ticket.StoreID }}" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:border-brand-200 hover:text-brand-600">
-                        Ambil Lagi
-                    </a>
-                </div>
-            </div>
-        </main>
-    </body>
+.service{
+  font-size:14px;
+  margin-bottom:1mm;
+}
+
+.meta{
+  font-size:10px;
+}
+
+.hr{
+  border-top:1px dashed #000;
+  margin:1.5mm 0;
+}
+
+/* tombol test */
+@media print{
+  button{ display:none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- <button onclick="window.print()">PRINT</button> -->
+
+<div class="receipt">
+  <div class="center bold brand" style="margin-top: 10px;">
+    ANTRIAN SUPPLIER
+  </div>
+
+  <div class="center meta">
+    Manna Kampus - {{ .Ticket.StoreName }}
+  </div>
+
+  <div class="hr"></div>
+
+  <div class="center meta">NOMOR ANTRIAN</div>
+
+  <div class="center queue">
+    {{ .Ticket.TicketNo }}
+  </div>
+
+  <div class="center bold service">
+    LOKET {{ .Ticket.CounterName }}
+  </div>
+
+  <div class="hr"></div>
+
+  <div class="center meta">
+    {{ .Ticket.CreatedAtDisplay }}
+  </div>
+</div>
+
+</body>
 </html>
