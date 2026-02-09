@@ -138,7 +138,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 {{ if .GuestCounters }}
                                     {{ range .GuestCounters }}
-                                        <form action="/guest/ticket" method="post" class="group">
+                                        <form action="/guest/ticket" method="post" class="group" data-print-window="true">
                                             <input type="hidden" name="counter_id" value="{{ .CounterID }}" />
                                             <button
                                                 type="submit"
@@ -308,6 +308,32 @@
                     document.fonts.ready.then(fitToViewport);
                 }
                 fitToViewport();
+            })();
+        </script>
+
+        <script>
+            (function () {
+                var forms = document.querySelectorAll('form[data-print-window="true"]');
+                if (!forms.length) return;
+
+                function submitToPrintWindow(form) {
+                    var windowName = 'printTicket_' + Date.now();
+                    var printWindow = window.open('', windowName, 'width=480,height=640');
+                    if (!printWindow) {
+                        form.submit();
+                        return;
+                    }
+                    form.setAttribute('target', windowName);
+                    form.submit();
+                    form.removeAttribute('target');
+                }
+
+                forms.forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        event.preventDefault();
+                        submitToPrintWindow(form);
+                    });
+                });
             })();
         </script>
 
