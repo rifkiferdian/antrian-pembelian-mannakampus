@@ -15,13 +15,20 @@ func buildQueueViewPayload(storeID int, action string) (models.QueueViewPayload,
 		return models.QueueViewPayload{}, err
 	}
 
+	guestRepo := &repositories.GuestQueueRepository{DB: config.DB}
+	guestCounters, err := guestRepo.GetCountersForGuest(storeID, today)
+	if err != nil {
+		return models.QueueViewPayload{}, err
+	}
+
 	return models.QueueViewPayload{
-		Type:        "queue_update",
-		Action:      action,
-		StoreID:     storeID,
-		Date:        today.Format("02 Jan 2006"),
-		CurrentCall: currentCall,
-		Counters:    counters,
+		Type:          "queue_update",
+		Action:        action,
+		StoreID:       storeID,
+		Date:          today.Format("02 Jan 2006"),
+		CurrentCall:   currentCall,
+		Counters:      counters,
+		GuestCounters: guestCounters,
 	}, nil
 }
 

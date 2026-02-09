@@ -173,7 +173,7 @@
                                                         {{ .IndexLabel }}
                                                     </span>
                                                     <span class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                                                        Menunggu <span class="ml-1 text-orange-500">{{ .WaitingCount }}</span>
+                                                        Menunggu <span class="ml-1 text-orange-500" data-waiting-counter-id="{{ .CounterID }}">{{ .WaitingCount }}</span>
                                                     </span>
                                                 </div>
                                                 <div class="mt-4 flex items-start gap-4">
@@ -567,6 +567,18 @@
                     });
                 }
 
+                function renderGuestCounters(guestCounters) {
+                    if (!guestCounters || !guestCounters.length) return;
+                    guestCounters.forEach(function (counter) {
+                        var counterId = counter && counter.counter_id ? String(counter.counter_id) : '';
+                        if (!counterId) return;
+                        var el = document.querySelector('[data-waiting-counter-id="' + counterId + '"]');
+                        if (!el) return;
+                        var waiting = counter && typeof counter.waiting_count !== 'undefined' ? counter.waiting_count : '-';
+                        el.textContent = waiting;
+                    });
+                }
+
                 function speak(call) {
                     if (!call || !call.ticket_no) return;
                     if (!('speechSynthesis' in window)) return;
@@ -611,6 +623,7 @@
                         if (!payload || payload.type !== 'queue_update') return;
                         renderCurrentCall(payload.current_call || {});
                         renderCounters(payload.counters || []);
+                        renderGuestCounters(payload.guest_counters || []);
 
                         if (payload.action === 'call' || payload.action === 'recall') {
                             speak(payload.current_call || {});
