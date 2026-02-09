@@ -109,13 +109,13 @@
                             <div
                                 id="current-counter"
                                 class="mt-6 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-9 py-3.5 text-[clamp(16px,1.4vw,22px)] font-semibold uppercase tracking-[0.35em] text-white"
-                                data-counter-label="{{ .CurrentCall.CounterLabel }}"
+                                data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
                             >
                                 <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
                                 <span id="current-counter-number" class="text-[clamp(22px,2.2vw,32px)] font-black">-</span>
                             </div>
-                            <p id="current-category" class="mt-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CategoryName }}block{{ else }}hidden{{ end }}">
-                                {{ if .CurrentCall.CategoryName }}{{ .CurrentCall.CategoryName }}{{ end }}
+                            <p id="current-category" class="mt-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CounterName }}block{{ else }}hidden{{ end }}">
+                                {{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ end }}
                             </p>
                         </div>
                         <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
@@ -251,15 +251,16 @@
 
                 function renderCurrentCall(call) {
                     var ticketNo = call && call.ticket_no ? String(call.ticket_no).trim() : '';
-                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : 'Loket -';
-                    var categoryName = call && call.category_name ? String(call.category_name).trim() : '';
+                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : '';
+                    var counterName = call && call.counter_name ? String(call.counter_name).trim() : '';
+                    var counterDisplay = counterName || counterLabel || 'Loket -';
                     var hasCall = ticketNo !== '';
 
                     if (ticketEl) ticketEl.textContent = hasCall ? ticketNo : '-';
-                    renderCounterLabel(counterLabel || 'Loket -');
+                    renderCounterLabel(counterDisplay);
                     if (categoryEl) {
-                        if (categoryName) {
-                            categoryEl.textContent = categoryName;
+                        if (counterName) {
+                            categoryEl.textContent = counterName;
                             categoryEl.classList.remove('hidden');
                         } else {
                             categoryEl.textContent = '';
@@ -323,8 +324,10 @@
                     if (!call || !call.ticket_no) return;
                     if (!('speechSynthesis' in window)) return;
                     var ticketNo = String(call.ticket_no).replace(/-/g, ' ');
-                    var counterLabel = call.counter_label ? String(call.counter_label) : 'loket';
-                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + counterLabel;
+                    var counterName = call.counter_name ? String(call.counter_name).trim() : '';
+                    var counterLabel = call.counter_label ? String(call.counter_label).trim() : '';
+                    var destination = counterName || counterLabel || 'loket';
+                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + destination;
                     var utter = new SpeechSynthesisUtterance(message);
                     utter.lang = 'id-ID';
                     utter.rate = 1;

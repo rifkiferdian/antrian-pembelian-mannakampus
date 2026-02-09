@@ -170,7 +170,7 @@
                                             >
                                                 <div class="flex items-center justify-between">
                                                     <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">
-                                                        {{ .IndexLabel }}
+                                                        <!-- {{ .IndexLabel }} -->
                                                     </span>
                                                     <span class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.2em] text-slate-400">
                                                         Menunggu <span class="ml-1 text-orange-500" data-waiting-counter-id="{{ .CounterID }}">{{ .WaitingCount }}</span>
@@ -189,7 +189,7 @@
                                                         {{ end }}
                                                     </span>
                                                     <div class="flex-1">
-                                                        <p class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.35em] text-slate-400">Kategori</p>
+                                                        <p class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.35em] text-slate-400">{{ .IndexLabel }}</p>
                                                         <h3 class="mt-1 text-[clamp(18px,1.8vw,24px)] font-bold text-slate-900">{{ .CategoryName }}</h3>
                                                         <div class="mt-3 flex flex-wrap items-center gap-2">
                                                             <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Staff</span>
@@ -240,14 +240,14 @@
                                 <div
                                     id="current-counter"
                                     class="mt-4 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-7 py-2.5 text-[clamp(12px,1.1vw,16px)] font-semibold uppercase tracking-[0.35em] text-white"
-                                    data-counter-label="{{ .CurrentCall.CounterLabel }}"
+                                    data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
                                 >
                                     <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
                                     <span id="current-counter-number" class="text-[clamp(18px,1.8vw,26px)] font-black">-</span>
                                 </div>
-                                <p id="current-category" class="mt-3 text-[clamp(11px,0.95vw,14px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CategoryName }}block{{ else }}hidden{{ end }}">
-                                    {{ if .CurrentCall.CategoryName }}{{ .CurrentCall.CategoryName }}{{ end }}
-                                </p>
+                                <!-- <p id="current-category" class="mt-3 text-[clamp(11px,0.95vw,14px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CounterName }}block{{ else }}hidden{{ end }}">
+                                    {{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ end }}
+                                </p> -->
                             </div>
                             <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
                                 <p class="text-[clamp(22px,2vw,30px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
@@ -494,15 +494,17 @@
 
                 function renderCurrentCall(call) {
                     var ticketNo = call && call.ticket_no ? String(call.ticket_no).trim() : '';
-                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : 'Loket -';
-                    var categoryName = call && call.category_name ? String(call.category_name).trim() : '';
+                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : '';
+                    var counterName = call && call.counter_name ? String(call.counter_name).trim() : '';
+                    var counterDisplay = counterName || counterLabel || 'Loket -';
+                    var counterName = call && call.counter_name ? String(call.counter_name).trim() : '';
                     var hasCall = ticketNo !== '';
 
                     if (ticketEl) ticketEl.textContent = hasCall ? ticketNo : '-';
-                    renderCounterLabel(counterLabel || 'Loket -');
+                    renderCounterLabel(counterDisplay);
                     if (categoryEl) {
-                        if (categoryName) {
-                            categoryEl.textContent = categoryName;
+                        if (counterName) {
+                            categoryEl.textContent = counterName;
                             categoryEl.classList.remove('hidden');
                         } else {
                             categoryEl.textContent = '';
@@ -579,8 +581,10 @@
                     if (!call || !call.ticket_no) return;
                     if (!('speechSynthesis' in window)) return;
                     var ticketNo = String(call.ticket_no).replace(/-/g, ' ');
-                    var counterLabel = call.counter_label ? String(call.counter_label) : 'loket';
-                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + counterLabel;
+                    var counterName = call.counter_name ? String(call.counter_name).trim() : '';
+                    var counterLabel = call.counter_label ? String(call.counter_label).trim() : '';
+                    var destination = counterName || counterLabel || 'loket';
+                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + destination;
                     var utter = new SpeechSynthesisUtterance(message);
                     utter.lang = 'id-ID';
                     utter.rate = 1;

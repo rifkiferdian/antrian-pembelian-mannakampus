@@ -14,12 +14,14 @@ type ViewQueueRepository struct {
 func (r *ViewQueueRepository) GetCurrentCall(storeID int, ticketDate time.Time) (models.QueueViewCall, error) {
 	var call models.QueueViewCall
 	var counterCode sql.NullString
+	var counterName sql.NullString
 	var categoryName sql.NullString
 
 	err := r.DB.QueryRow(`
         SELECT
             qt.ticket_no,
             COALESCE(c.counter_code, '') AS counter_code,
+            COALESCE(c.counter_name, '') AS counter_name,
             COALESCE(sc.category_name, '') AS category_name
         FROM queue_tickets qt
         LEFT JOIN counters c ON c.id = qt.counter_id
@@ -30,6 +32,7 @@ func (r *ViewQueueRepository) GetCurrentCall(storeID int, ticketDate time.Time) 
     `, storeID, ticketDate.Format("2006-01-02")).Scan(
 		&call.TicketNo,
 		&counterCode,
+		&counterName,
 		&categoryName,
 	)
 	if err != nil {
@@ -40,6 +43,7 @@ func (r *ViewQueueRepository) GetCurrentCall(storeID int, ticketDate time.Time) 
 	}
 
 	call.CounterLabel = counterCode.String
+	call.CounterName = counterName.String
 	call.CategoryName = categoryName.String
 	return call, nil
 }

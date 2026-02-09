@@ -4,6 +4,7 @@ package models
 type QueueViewCall struct {
 	TicketNo     string `json:"ticket_no"`
 	CounterLabel string `json:"counter_label"`
+	CounterName  string `json:"counter_name"`
 	CategoryName string `json:"category_name"`
 }
 

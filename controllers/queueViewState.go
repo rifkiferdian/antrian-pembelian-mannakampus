@@ -62,6 +62,7 @@ func buildQueueViewState(storeID int) (models.QueueViewCall, []models.QueueViewC
 			if counter.TicketStatus == "CALLED" && counter.TicketNo != "-" {
 				currentCall.TicketNo = counter.TicketNo
 				currentCall.CounterLabel = counter.CounterLabel
+				currentCall.CounterName = counter.CounterName
 				currentCall.CategoryName = counter.CategoryName
 				currentTicket = counter.TicketNo
 				break
@@ -72,6 +73,9 @@ func buildQueueViewState(storeID int) (models.QueueViewCall, []models.QueueViewC
 			for _, counter := range counters {
 				if counter.TicketNo == currentTicket {
 					currentCall.CounterLabel = counter.CounterLabel
+					if strings.TrimSpace(currentCall.CounterName) == "" {
+						currentCall.CounterName = counter.CounterName
+					}
 					currentCall.CategoryName = counter.CategoryName
 					break
 				}
@@ -81,5 +85,18 @@ func buildQueueViewState(storeID int) (models.QueueViewCall, []models.QueueViewC
 		}
 	}
 
+	currentCall.CounterName = formatCounterName(currentCall.CounterName)
 	return currentCall, counters, today, nil
+}
+
+func formatCounterName(name string) string {
+	trimmed := strings.TrimSpace(name)
+	if trimmed == "" {
+		return ""
+	}
+	lower := strings.ToLower(trimmed)
+	if strings.HasPrefix(lower, "loket") {
+		return trimmed
+	}
+	return "Loket " + trimmed
 }
