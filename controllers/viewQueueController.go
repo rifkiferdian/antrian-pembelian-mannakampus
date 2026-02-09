@@ -58,6 +58,65 @@ func ViewQueuePage(c *gin.Context) {
 	})
 }
 
+func ViewQueueV2Page(c *gin.Context) {
+	storeRepo := &repositories.StoreRepository{DB: config.DB}
+
+	storeID, _ := strconv.Atoi(strings.TrimSpace(c.Param("store_id")))
+	var (
+		store models.Store
+		err   error
+	)
+
+	if storeID > 0 {
+		store, err = storeRepo.GetByID(storeID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.String(http.StatusNotFound, "store tidak ditemukan")
+				return
+			}
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	} else {
+		store, err = storeRepo.GetFirstActive()
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		storeID = store.StoreID
+	}
+
+	currentCall, counters, today, err := buildQueueViewState(storeID)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	guestRepo := &repositories.GuestQueueRepository{DB: config.DB}
+	guestCounters, err := guestRepo.GetCountersForGuest(storeID, today)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	for i := range guestCounters {
+		guestCounters[i].IndexLabel = "Loket " + strconv.Itoa(i+1)
+		if len(guestCounters[i].StaffNames) == 0 {
+			guestCounters[i].StaffNames = []string{"-"}
+		}
+		guestCounters[i].Icon = resolveCategoryIcon(guestCounters[i].CategoryName)
+	}
+
+	c.HTML(http.StatusOK, "view_queue_v2.html", gin.H{
+		"Title":         "Tampilan Antrian",
+		"Store":         store,
+		"StoreID":       store.StoreID,
+		"Date":          today.Format("02 Jan 2006"),
+		"CurrentCall":   currentCall,
+		"Counters":      counters,
+		"GuestCounters": guestCounters,
+	})
+}
+
 func resolveQueueStatus(status string, isCurrent bool) (string, string) {
 	switch status {
 	case "CALLED":

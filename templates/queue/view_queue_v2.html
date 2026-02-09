@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <title>{{ .Title }} | Sistem Antrean Supplier</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+        <script>
+            window.tailwind = window.tailwind || {};
+            window.tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            display: ["Poppins", "ui-sans-serif", "system-ui"],
+                            body: ["Poppins", "ui-sans-serif", "system-ui"],
+                        },
+                        colors: {
+                            brand: {
+                                50: "#fff7ed",
+                                100: "#ffedd5",
+                                200: "#fed7aa",
+                                300: "#fdba74",
+                                400: "#fb923c",
+                                500: "#f57c00",
+                                600: "#e56f00",
+                                700: "#c25700",
+                                800: "#9a4200",
+                                900: "#7a3200",
+                            },
+                        },
+                        boxShadow: {
+                            lift: "0 20px 45px -28px rgba(15, 23, 42, 0.45)",
+                            warm: "0 18px 35px -28px rgba(245, 124, 0, 0.55)",
+                        },
+                    },
+                },
+            };
+        </script>
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <style>
+            .page-surface {
+                background: radial-gradient(circle at top, #fff9f3 0%, #f5f7fb 45%, #eef2f7 100%);
+            }
+            .panel {
+                background: #ffffff;
+                border: 1px solid rgba(226, 232, 240, 0.9);
+                box-shadow: 0 20px 45px -30px rgba(15, 23, 42, 0.35);
+            }
+            .ticket-header {
+                background: linear-gradient(135deg, #f57c00 0%, #ff9b3f 48%, #ffb364 100%);
+            }
+            .queue-call-card {
+                background: linear-gradient(135deg, #ffffff 0%, #fff3e6 100%);
+                box-shadow: 0 26px 60px -40px rgba(249, 115, 22, 0.6);
+            }
+            .queue-status-card {
+                box-shadow: 0 22px 50px -40px rgba(15, 23, 42, 0.35);
+            }
+            .queue-video {
+                background: linear-gradient(145deg, #0b1324 0%, #0f172a 55%, #0b1324 100%);
+            }
+            .icon-soft {
+                background: linear-gradient(135deg, rgba(255, 237, 213, 0.9), rgba(255, 251, 235, 0.7));
+            }
+            .scroll-slim::-webkit-scrollbar {
+                width: 8px;
+            }
+            .scroll-slim::-webkit-scrollbar-thumb {
+                background: rgba(148, 163, 184, 0.6);
+                border-radius: 999px;
+            }
+            .scroll-slim::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .flash-text {
+                animation: flash 1.2s ease-in-out infinite;
+            }
+            @keyframes flash {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.35;
+                }
+            }
+        </style>
+    </head>
+
+    <body class="page-surface h-screen overflow-hidden font-body text-[clamp(14px,1vw,18px)] text-slate-900" data-store-id="{{ .StoreID }}">
+        <main id="queue-layout" class="mx-auto flex h-full w-full flex-col px-[clamp(16px,3vw,48px)] py-[clamp(16px,3vh,40px)]">
+            <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-[22px] bg-white shadow-warm">
+                        <span class="text-orange-500">
+                            <svg viewBox="0 0 24 24" class="h-8 w-8" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div>
+                        <h1 class="text-[clamp(22px,2.2vw,32px)] font-extrabold uppercase tracking-[0.2em] text-slate-900">Sistem Antrean Pembelian</h1>
+                        <p class="mt-1 text-[clamp(12px,1vw,16px)] text-slate-500">Ambil tiket di kiri, pantau panggilan di kanan.</p>
+                    </div>
+                </div>
+                {{ if .Store }}
+                    <div class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-6 py-2 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                        {{ .Store.StoreName }} - {{ .Date }}
+                    </div>
+                {{ end }}
+            </header>
+
+            <section class="mt-6 grid min-h-0 flex-1 gap-6 lg:grid-cols-[1.05fr_1.25fr]">
+                <aside class="panel flex min-h-0 flex-col overflow-hidden rounded-[28px]">
+                    <div class="ticket-header flex items-center justify-between px-[clamp(18px,2.6vw,32px)] py-[clamp(14px,2.4vh,22px)] text-white">
+                        <div>
+                            <p class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em] text-white/70">Ambil Tiket</p>
+                            <p class="mt-1 text-[clamp(18px,1.6vw,24px)] font-bold">Pilih Kategori Produk</p>
+                        </div>
+                        <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-3xl">
+                            <i class="bx bx-receipt"></i>
+                        </span>
+                    </div>
+                    <div class="flex min-h-0 flex-1 flex-col gap-4 px-[clamp(18px,2.6vw,32px)] py-[clamp(18px,2.6vh,28px)]">
+                        <div class="flex items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-orange-50/70 px-4 py-3 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-orange-600">
+                            <span>Sentuh kartu untuk cetak tiket</span>
+                            <i class="bx bx-right-arrow-alt text-2xl"></i>
+                        </div>
+
+                        <div class="scroll-slim min-h-0 flex-1 overflow-y-auto pr-1">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                {{ if .GuestCounters }}
+                                    {{ range .GuestCounters }}
+                                        <form action="/guest/ticket" method="post" class="group">
+                                            <input type="hidden" name="counter_id" value="{{ .CounterID }}" />
+                                            <button
+                                                type="submit"
+                                                class="panel h-full w-full rounded-[22px] border border-slate-200 px-4 py-4 text-left transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                                            >
+                                                <div class="flex items-center justify-between">
+                                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                                        {{ .IndexLabel }}
+                                                    </span>
+                                                    <span class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                                        Menunggu <span class="ml-1 text-orange-500">{{ .WaitingCount }}</span>
+                                                    </span>
+                                                </div>
+                                                <div class="mt-4 flex items-start gap-4">
+                                                    <span class="icon-soft flex h-14 w-14 items-center justify-center rounded-2xl text-orange-500">
+                                                        {{ if eq .Icon "fashion" }}
+                                                            <i class="bx bxs-t-shirt text-3xl"></i>
+                                                        {{ else if eq .Icon "toiletries" }}
+                                                            <i class="bx bx-bath text-3xl"></i>
+                                                        {{ else if eq .Icon "food" }}
+                                                            <i class="bx bx-bowl-hot text-3xl"></i>
+                                                        {{ else }}
+                                                            <i class="bx bx-grid-alt text-3xl"></i>
+                                                        {{ end }}
+                                                    </span>
+                                                    <div class="flex-1">
+                                                        <p class="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-400">Kategori</p>
+                                                        <h3 class="mt-1 text-[clamp(16px,1.4vw,20px)] font-bold text-slate-900">{{ .CategoryName }}</h3>
+                                                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                                                            <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Staff</span>
+                                                            {{ if .StaffNames }}
+                                                                <div class="flex flex-wrap gap-1">
+                                                                    {{ range .StaffNames }}
+                                                                        <span class="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-600">{{ . }}</span>
+                                                                    {{ end }}
+                                                                </div>
+                                                            {{ else }}
+                                                                <span class="text-xs text-slate-400">-</span>
+                                                            {{ end }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.35em] text-brand-600">
+                                                    Ambil tiket
+                                                    <i class="bx bx-right-arrow-alt text-xl"></i>
+                                                </div>
+                                            </button>
+                                        </form>
+                                    {{ end }}
+                                {{ else }}
+                                    <div class="col-span-full rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                                        Data loket belum tersedia untuk sesi ini.
+                                    </div>
+                                {{ end }}
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <section class="flex min-h-0 flex-col gap-6">
+                    <div class="panel queue-call-card overflow-hidden rounded-[28px]">
+                        <div class="flex items-center justify-between bg-orange-500 px-[clamp(20px,2.8vw,36px)] py-[clamp(14px,2.2vh,22px)] text-white">
+                            <span class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
+                            <button
+                                id="speaker-test-btn"
+                                type="button"
+                                class="flex h-[clamp(42px,4.8vh,54px)] w-[clamp(42px,4.8vh,54px)] items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="Tes speaker"
+                                aria-label="Tes speaker"
+                            >
+                                <i class="bx bx-volume-full"></i>
+                            </button>
+                        </div>
+                        <div class="flex min-h-[clamp(220px,30vh,420px)] flex-col items-center justify-center px-[clamp(18px,2.6vw,32px)] py-[clamp(18px,2.6vh,32px)] text-center">
+                            <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
+                                <p id="current-ticket" class="text-[clamp(70px,8vw,150px)] font-extrabold leading-none tracking-tight text-slate-900">
+                                    {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
+                                </p>
+                                <div
+                                    id="current-counter"
+                                    class="mt-5 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-8 py-3 text-[clamp(14px,1.2vw,18px)] font-semibold uppercase tracking-[0.35em] text-white"
+                                    data-counter-label="{{ .CurrentCall.CounterLabel }}"
+                                >
+                                    <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
+                                    <span id="current-counter-number" class="text-[clamp(20px,2vw,30px)] font-black">-</span>
+                                </div>
+                                <p id="current-category" class="mt-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CategoryName }}block{{ else }}hidden{{ end }}">
+                                    {{ if .CurrentCall.CategoryName }}{{ .CurrentCall.CategoryName }}{{ end }}
+                                </p>
+                            </div>
+                            <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
+                                <p class="text-[clamp(26px,2.4vw,34px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
+                                <p class="mt-3 text-[clamp(12px,1vw,16px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
+                            </div>
+                            <div class="flash-text mt-[clamp(14px,2.4vh,26px)] w-full rounded-2xl bg-orange-50/70 px-6 py-4 text-[clamp(12px,1vw,16px)] font-bold uppercase italic tracking-[0.35em] text-orange-600">
+                                Silahkan menuju loket terkait !
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex min-h-0 flex-1">
+                        <div class="panel queue-status-card flex w-full flex-col rounded-[26px] px-[clamp(18px,2.6vw,28px)] py-[clamp(14px,2.4vh,26px)]">
+                            <div class="flex items-center gap-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-orange-500">
+                                    <i class="bx bxs-grid-alt text-2xl"></i>
+                                </span>
+                                Status Loket
+                            </div>
+                            <div class="mt-4">
+                                <div id="queue-counters" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                                    {{ if .Counters }}
+                                        {{ range .Counters }}
+                                            <div class="rounded-[20px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-5 py-5 text-center shadow-lift {{ if .IsCurrent }}ring-2 ring-orange-300{{ end }}">
+                                                <p class="text-[clamp(12px,1vw,16px)] font-extrabold uppercase tracking-[0.35em] text-orange-500">{{ .CounterLabel }}</p>
+                                                <p class="mt-2 text-[clamp(14px,1.2vw,20px)] font-black uppercase tracking-[0.2em] text-slate-600">{{ .CategoryName }}</p>
+                                                <p class="mt-4 text-[clamp(28px,3vw,52px)] font-extrabold text-slate-900">{{ .TicketNo }}</p>
+                                                <span class="mt-4 inline-flex items-center justify-center rounded-full px-5 py-2 text-[clamp(10px,0.9vw,14px)] font-semibold uppercase tracking-[0.25em] {{ .StatusClass }}">
+                                                    {{ .StatusLabel }}
+                                                </span>
+                                            </div>
+                                        {{ end }}
+                                    {{ else }}
+                                        <div class="col-span-full rounded-2xl border border-slate-200 bg-white p-6 text-center text-[clamp(12px,1vw,16px)] text-slate-500">
+                                            Belum ada loket aktif untuk store ini.
+                                        </div>
+                                    {{ end }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <script>
+            (function () {
+                var mainEl = document.getElementById('queue-layout');
+                if (!mainEl) return;
+
+                function fitToViewport() {
+                    mainEl.style.transform = '';
+                    mainEl.style.transformOrigin = '';
+                    mainEl.style.marginLeft = '';
+                    mainEl.style.marginRight = '';
+
+                    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+                    var contentHeight = mainEl.scrollHeight;
+
+                    if (!viewportHeight || contentHeight <= viewportHeight) {
+                        return;
+                    }
+
+                    var safePadding = 12;
+                    var availableHeight = Math.max(0, viewportHeight - safePadding);
+                    var scale = availableHeight / contentHeight;
+                    mainEl.style.transformOrigin = 'top center';
+                    mainEl.style.transform = 'scale(' + scale.toFixed(4) + ')';
+                    mainEl.style.marginLeft = 'auto';
+                    mainEl.style.marginRight = 'auto';
+                }
+
+                window.addEventListener('resize', function () {
+                    window.requestAnimationFrame(fitToViewport);
+                });
+                window.addEventListener('load', fitToViewport);
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(fitToViewport);
+                }
+                fitToViewport();
+            })();
+        </script>
+
+        <script>
+            (function () {
+                var speakerTestBtn = document.getElementById('speaker-test-btn');
+                var storeId = Number(document.body.getAttribute('data-store-id') || 0);
+                var ticketEl = document.getElementById('current-ticket');
+                var counterEl = document.getElementById('current-counter');
+                var counterWordEl = document.getElementById('current-counter-word');
+                var counterNumberEl = document.getElementById('current-counter-number');
+                var categoryEl = document.getElementById('current-category');
+                var callContentEl = document.getElementById('current-call-content');
+                var callEmptyEl = document.getElementById('current-call-empty');
+                var countersGrid = document.getElementById('queue-counters');
+
+                function splitCounterLabel(label) {
+                    var trimmed = label ? String(label).trim() : '';
+                    if (!trimmed) {
+                        return { word: 'Loket', number: '-' };
+                    }
+                    var lower = trimmed.toLowerCase();
+                    if (lower.startsWith('loket')) {
+                        var rest = trimmed.slice(5).trim();
+                        return { word: 'Loket', number: rest || '-' };
+                    }
+                    return { word: 'Loket', number: trimmed };
+                }
+
+                function renderCounterLabel(label) {
+                    if (!counterWordEl || !counterNumberEl) return;
+                    var parts = splitCounterLabel(label);
+                    counterWordEl.textContent = parts.word;
+                    counterNumberEl.textContent = parts.number;
+                }
+
+                function renderCurrentCall(call) {
+                    var ticketNo = call && call.ticket_no ? String(call.ticket_no).trim() : '';
+                    var counterLabel = call && call.counter_label ? String(call.counter_label).trim() : 'Loket -';
+                    var categoryName = call && call.category_name ? String(call.category_name).trim() : '';
+                    var hasCall = ticketNo !== '';
+
+                    if (ticketEl) ticketEl.textContent = hasCall ? ticketNo : '-';
+                    renderCounterLabel(counterLabel || 'Loket -');
+                    if (categoryEl) {
+                        if (categoryName) {
+                            categoryEl.textContent = categoryName;
+                            categoryEl.classList.remove('hidden');
+                        } else {
+                            categoryEl.textContent = '';
+                            categoryEl.classList.add('hidden');
+                        }
+                    }
+                    if (callContentEl && callEmptyEl) {
+                        if (hasCall) {
+                            callContentEl.classList.remove('hidden');
+                            callEmptyEl.classList.add('hidden');
+                        } else {
+                            callContentEl.classList.add('hidden');
+                            callEmptyEl.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                function buildCounterCard(counter) {
+                    var card = document.createElement('div');
+                    var highlight = counter && counter.is_current ? ' ring-2 ring-orange-300' : '';
+                    card.className = 'rounded-[20px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-5 py-5 text-center shadow-lift' + highlight;
+
+                    var label = document.createElement('p');
+                    label.className = 'text-[clamp(12px,1vw,16px)] font-extrabold uppercase tracking-[0.35em] text-orange-500';
+                    label.textContent = counter.counter_label || 'Loket -';
+
+                    var category = document.createElement('p');
+                    category.className = 'mt-2 text-[clamp(14px,1.2vw,20px)] font-black uppercase tracking-[0.2em] text-slate-600';
+                    category.textContent = counter.category_name || '-';
+
+                    var ticket = document.createElement('p');
+                    ticket.className = 'mt-4 text-[clamp(28px,3vw,52px)] font-extrabold text-slate-900';
+                    ticket.textContent = counter.ticket_no || '-';
+
+                    var status = document.createElement('span');
+                    status.className = 'mt-4 inline-flex items-center justify-center rounded-full px-5 py-2 text-[clamp(10px,0.9vw,14px)] font-semibold uppercase tracking-[0.25em] ' + (counter.status_class || 'bg-slate-100 text-slate-400');
+                    status.textContent = counter.status_label || 'BELUM ADA';
+
+                    card.appendChild(label);
+                    card.appendChild(category);
+                    card.appendChild(ticket);
+                    card.appendChild(status);
+                    return card;
+                }
+
+                function renderCounters(counters) {
+                    if (!countersGrid) return;
+                    countersGrid.innerHTML = '';
+                    if (!counters || !counters.length) {
+                        var empty = document.createElement('div');
+                        empty.className = 'col-span-full rounded-2xl border border-slate-200 bg-white p-6 text-center text-[clamp(12px,1vw,16px)] text-slate-500';
+                        empty.textContent = 'Belum ada loket aktif untuk store ini.';
+                        countersGrid.appendChild(empty);
+                        return;
+                    }
+                    counters.forEach(function (counter) {
+                        countersGrid.appendChild(buildCounterCard(counter));
+                    });
+                }
+
+                function speak(call) {
+                    if (!call || !call.ticket_no) return;
+                    if (!('speechSynthesis' in window)) return;
+                    var ticketNo = String(call.ticket_no).replace(/-/g, ' ');
+                    var counterLabel = call.counter_label ? String(call.counter_label) : 'loket';
+                    var message = 'Nomor antrian ' + ticketNo + ' silakan menuju ' + counterLabel;
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                function testSpeaker() {
+                    if (!('speechSynthesis' in window)) return;
+                    var message = 'Tes speaker. Jika Anda mendengar ini, speaker aktif.';
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                var reconnectDelay = 2000;
+                var ws;
+
+                function connectWS() {
+                    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    var wsUrl = protocol + '//' + window.location.host + '/ws/view-queue/' + storeId;
+                    ws = new WebSocket(wsUrl);
+
+                    ws.onmessage = function (event) {
+                        var payload;
+                        try {
+                            payload = JSON.parse(event.data);
+                        } catch (e) {
+                            return;
+                        }
+                        if (!payload || payload.type !== 'queue_update') return;
+                        renderCurrentCall(payload.current_call || {});
+                        renderCounters(payload.counters || []);
+
+                        if (payload.action === 'call' || payload.action === 'recall') {
+                            speak(payload.current_call || {});
+                        }
+                    };
+
+                    ws.onclose = function () {
+                        setTimeout(connectWS, reconnectDelay);
+                    };
+                }
+
+                if (counterEl) {
+                    renderCounterLabel(counterEl.getAttribute('data-counter-label') || 'Loket -');
+                }
+
+                if (speakerTestBtn) {
+                    if (!('speechSynthesis' in window)) {
+                        speakerTestBtn.disabled = true;
+                        speakerTestBtn.title = 'Browser tidak mendukung text-to-speech';
+                        speakerTestBtn.setAttribute('aria-label', 'Speaker tidak didukung');
+                    } else {
+                        speakerTestBtn.addEventListener('click', function () {
+                            testSpeaker();
+                        });
+                    }
+                }
+
+                if (!storeId) return;
+
+                connectWS();
+            })();
+        </script>
+    </body>
+</html>

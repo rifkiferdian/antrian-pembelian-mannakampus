@@ -20,6 +20,7 @@ func RegisterWebRoutes(r *gin.Engine) {
 	r.GET("/guest/ticket/:id", controllers.GuestTicketShow)
 
 	r.GET("/view-queue/:store_id", controllers.ViewQueuePage)
+	r.GET("/view-queue-v2/:store_id", controllers.ViewQueueV2Page)
 	r.GET("/ws/view-queue/:store_id", controllers.ViewQueueWS)
 
 	auth := r.Group("/")
