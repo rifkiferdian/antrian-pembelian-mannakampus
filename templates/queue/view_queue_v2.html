@@ -129,16 +129,40 @@
                         </span>
                     </div>
                     <div class="flex min-h-0 flex-1 flex-col gap-4 px-[clamp(18px,2.6vw,32px)] py-[clamp(18px,2.6vh,28px)]">
-                        <div class="flex items-center justify-between gap-4 rounded-2xl border border-orange-100 bg-orange-50/70 px-4 py-3 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-orange-600">
-                            <span>Sentuh kartu untuk cetak tiket</span>
-                            <i class="bx bx-right-arrow-alt text-2xl"></i>
+                        <div class="rounded-2xl border border-orange-100 bg-orange-50/70 px-4 py-3">
+                            <div class="flex items-center justify-between gap-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-orange-600">
+                                <span>Ketik nomor loket di keyboard untuk cetak tiket</span>
+                                <i class="bx bx-right-arrow-alt text-2xl"></i>
+                            </div>
+                            {{ if .GuestCounters }}
+                                <div class="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                                    {{ range .GuestCounters }}
+                                        <button
+                                            type="button"
+                                            class="flex flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white px-3 py-3 text-center shadow-lift transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                                            data-counter-btn="true"
+                                            data-counter-id="{{ .CounterID }}"
+                                            data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                        >
+                                            <span class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Loket</span>
+                                            <span class="mt-1 text-[clamp(18px,2.1vw,26px)] font-extrabold text-orange-500">
+                                                {{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}
+                                            </span>
+                                        </button>
+                                    {{ end }}
+                                </div>
+                            {{ else }}
+                                <div class="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+                                    Data loket belum tersedia.
+                                </div>
+                            {{ end }}
                         </div>
 
                         <div class="scroll-slim min-h-0 flex-1 overflow-y-auto pr-1">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 {{ if .GuestCounters }}
                                     {{ range .GuestCounters }}
-                                        <form action="/guest/ticket" method="post" class="group" data-print-window="true">
+                                        <form action="/guest/ticket" method="post" class="group" data-print-window="true" data-counter-id="{{ .CounterID }}" data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}">
                                             <input type="hidden" name="counter_id" value="{{ .CounterID }}" />
                                             <button
                                                 type="submit"
@@ -328,11 +352,113 @@
                     form.removeAttribute('target');
                 }
 
+                function normalizeCode(code) {
+                    var digits = String(code || '').replace(/\D/g, '');
+                    if (!digits) return '';
+                    return digits;
+                }
+
+                function stripLeadingZeros(code) {
+                    var stripped = String(code || '').replace(/^0+/, '');
+                    return stripped === '' ? '0' : stripped;
+                }
+
+                var formsByCounterId = {};
+                var formsByCounterCode = {};
+                var formsByCounterCodeTrim = {};
                 forms.forEach(function (form) {
+                    var counterId = form.getAttribute('data-counter-id');
+                    if (counterId) {
+                        formsByCounterId[counterId] = form;
+                    }
+                    var rawCode = form.getAttribute('data-counter-code');
+                    var normalized = normalizeCode(rawCode);
+                    if (normalized) {
+                        if (!formsByCounterCode[normalized]) {
+                            formsByCounterCode[normalized] = form;
+                        }
+                        var trimmed = stripLeadingZeros(normalized);
+                        if (!formsByCounterCodeTrim[trimmed]) {
+                            formsByCounterCodeTrim[trimmed] = form;
+                        }
+                    }
                     form.addEventListener('submit', function (event) {
                         event.preventDefault();
                         submitToPrintWindow(form);
                     });
+                });
+
+                var counterButtons = document.querySelectorAll('[data-counter-btn="true"]');
+                counterButtons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        var counterId = button.getAttribute('data-counter-id');
+                        if (!counterId) return;
+                        var form = formsByCounterId[counterId];
+                        if (form) {
+                            submitToPrintWindow(form);
+                        }
+                    });
+                });
+
+                var keyBuffer = '';
+                var keyTimer = null;
+                var submitDelay = 1000;
+                var maxDigits = 3;
+
+                function clearKeyBuffer() {
+                    keyBuffer = '';
+                    if (keyTimer) {
+                        clearTimeout(keyTimer);
+                        keyTimer = null;
+                    }
+                }
+
+                function findFormByCode(code) {
+                    if (!code) return null;
+                    if (formsByCounterCode[code]) return formsByCounterCode[code];
+                    var trimmed = stripLeadingZeros(code);
+                    if (formsByCounterCodeTrim[trimmed]) return formsByCounterCodeTrim[trimmed];
+                    return null;
+                }
+
+                function finalizeKeyBuffer() {
+                    var code = keyBuffer;
+                    clearKeyBuffer();
+                    if (!code) return;
+                    var form = findFormByCode(code);
+                    if (form) {
+                        submitToPrintWindow(form);
+                    }
+                }
+
+                function isTypingInInput(target) {
+                    if (!target) return false;
+                    var tag = String(target.tagName || '').toLowerCase();
+                    return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
+                }
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.defaultPrevented) return;
+                    if (isTypingInInput(event.target)) return;
+
+                    var key = event.key;
+                    if (key === 'Escape') {
+                        clearKeyBuffer();
+                        return;
+                    }
+                    if (key === 'Enter') {
+                        finalizeKeyBuffer();
+                        return;
+                    }
+                    if (!/^\d$/.test(key)) {
+                        return;
+                    }
+                    keyBuffer += key;
+                    if (keyBuffer.length > maxDigits) {
+                        keyBuffer = keyBuffer.slice(-maxDigits);
+                    }
+                    if (keyTimer) clearTimeout(keyTimer);
+                    keyTimer = setTimeout(finalizeKeyBuffer, submitDelay);
                 });
             })();
         </script>
