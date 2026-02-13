@@ -440,7 +440,14 @@
 
                 function isCounterAvailable(meta) {
                     var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
-                    return status === 'ACTIVE';
+                    if (status === 'ACTIVE') return true;
+                    if (status === 'INACTIVE') {
+                        var inactiveUntil = parseInactiveUntil(meta && meta.inactive_until ? meta.inactive_until : '');
+                        if (inactiveUntil && inactiveUntil.getTime() <= Date.now()) {
+                            return true;
+                        }
+                    }
+                    return false;
                 }
 
                 var formsByCounterId = {};

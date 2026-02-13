@@ -11,8 +11,33 @@ type GuestQueueRepository struct {
 	DB *sql.DB
 }
 
+func (r *GuestQueueRepository) activateExpiredInactiveByStore(storeID int) error {
+	if storeID <= 0 {
+		return nil
+	}
+
+	_, err := r.DB.Exec(`
+		UPDATE counter_staffs cs
+		INNER JOIN counters c ON c.id = cs.counter_id
+		SET
+			cs.status = 'ACTIVE',
+			cs.inactive_started_at = NULL,
+			cs.inactive_until = NULL,
+			cs.inactive_announcement = NULL
+		WHERE c.store_id = ?
+		  AND cs.status = 'INACTIVE'
+		  AND cs.inactive_until IS NOT NULL
+		  AND cs.inactive_until <= NOW()
+	`, storeID)
+	return err
+}
+
 // GetCountersForGuest mengambil daftar counter aktif beserta kategori dan jumlah antrian menunggu.
 func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.Time) ([]models.GuestQueueCounter, error) {
+	if err := r.activateExpiredInactiveByStore(storeID); err != nil {
+		return nil, err
+	}
+
 	rows, err := r.DB.Query(`
 		SELECT
 			c.id,
