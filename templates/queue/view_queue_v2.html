@@ -139,10 +139,13 @@
                                     {{ range .GuestCounters }}
                                         <button
                                             type="button"
-                                            class="flex flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white px-3 py-3 text-center shadow-lift transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                                            class="flex flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white px-3 py-3 text-center shadow-lift transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 {{ if eq .StaffStatus "ACTIVE" }}hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm{{ else }}cursor-not-allowed opacity-70{{ end }}"
                                             data-counter-btn="true"
                                             data-counter-id="{{ .CounterID }}"
                                             data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                            data-staff-status="{{ .StaffStatus }}"
+                                            data-inactive-until="{{ .InactiveUntil }}"
+                                            data-inactive-announcement="{{ .InactiveAnnouncement }}"
                                         >
                                             <span class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Loket</span>
                                             <span class="mt-1 text-[clamp(18px,2.1vw,26px)] font-extrabold text-orange-500">
@@ -162,11 +165,22 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 {{ if .GuestCounters }}
                                     {{ range .GuestCounters }}
-                                        <form action="/guest/ticket" method="post" class="group" data-print-window="true" data-counter-id="{{ .CounterID }}" data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}">
+                                        <form
+                                            action="/guest/ticket"
+                                            method="post"
+                                            class="group"
+                                            data-print-window="true"
+                                            data-counter-id="{{ .CounterID }}"
+                                            data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                            data-staff-status="{{ .StaffStatus }}"
+                                            data-inactive-until="{{ .InactiveUntil }}"
+                                            data-inactive-announcement="{{ .InactiveAnnouncement }}"
+                                        >
                                             <input type="hidden" name="counter_id" value="{{ .CounterID }}" />
                                             <button
                                                 type="submit"
-                                                class="panel h-full w-full rounded-[22px] border border-slate-200 px-4 py-4 text-left transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200"
+                                                class="panel h-full w-full rounded-[22px] border border-slate-200 px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 {{ if eq .StaffStatus "ACTIVE" }}hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm{{ else }}cursor-not-allowed opacity-80{{ end }}"
+                                                {{ if ne .StaffStatus "ACTIVE" }}disabled{{ end }}
                                             >
                                                 <div class="flex items-center justify-between">
                                                     <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -359,13 +373,132 @@
                     return stripped === '' ? '0' : stripped;
                 }
 
+                function parseInactiveUntil(raw) {
+                    var value = String(raw || '').trim();
+                    if (!value) return null;
+                    var normalized = value.replace(' ', 'T');
+                    var date = new Date(normalized);
+                    if (!Number.isNaN(date.getTime())) return date;
+                    var fallback = new Date(value);
+                    if (!Number.isNaN(fallback.getTime())) return fallback;
+                    return null;
+                }
+
+                function formatRemainingText(inactiveUntilRaw) {
+                    var inactiveUntil = parseInactiveUntil(inactiveUntilRaw);
+                    if (!inactiveUntil) return '';
+                    var diffMs = inactiveUntil.getTime() - Date.now();
+                    if (diffMs <= 0) return 'Jadwal aktif kembali sudah lewat.';
+                    var totalMinutes = Math.ceil(diffMs / 60000);
+                    if (totalMinutes < 60) {
+                        return 'Kembali aktif ' + totalMinutes + ' menit lagi.';
+                    }
+                    var hours = Math.floor(totalMinutes / 60);
+                    var minutes = totalMinutes % 60;
+                    if (minutes === 0) {
+                        return 'Kembali aktif ' + hours + ' jam lagi.';
+                    }
+                    return 'Kembali aktif ' + hours + ' jam ' + minutes + ' menit lagi.';
+                }
+
+                function getUnavailableDisplayBase(status) {
+                    if (status === 'REST') {
+                        return 'Loket sedang istirahat.';
+                    }
+                    return 'Loket sedang non-aktif.';
+                }
+
+                function getUnavailableVoiceMessage(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    var announcement = String(meta && meta.inactive_announcement ? meta.inactive_announcement : '').trim();
+                    var voiceMessage = announcement || getUnavailableDisplayBase(status);
+                    if (status === 'INACTIVE') {
+                        var remainingText = formatRemainingText(meta && meta.inactive_until ? meta.inactive_until : '');
+                        if (remainingText) {
+                            return voiceMessage + ' ' + remainingText;
+                        }
+                    }
+                    return voiceMessage;
+                }
+
+                function speakUnavailableNotice(meta) {
+                    if (!('speechSynthesis' in window)) return;
+                    var message = getUnavailableVoiceMessage(meta);
+                    if (!message) return;
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                function showUnavailableNotice(meta) {
+                    speakUnavailableNotice(meta);
+                }
+
+                function isCounterAvailable(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    return status === 'ACTIVE';
+                }
+
                 var formsByCounterId = {};
                 var formsByCounterCode = {};
                 var formsByCounterCodeTrim = {};
+                var counterButtonsById = {};
+                var counterMetaById = {};
+
+                function setCounterMeta(counterId, partialMeta) {
+                    if (!counterId) return;
+                    var existing = counterMetaById[counterId] || {};
+                    var merged = {
+                        staff_status: partialMeta && partialMeta.staff_status ? String(partialMeta.staff_status).toUpperCase() : (existing.staff_status || 'INACTIVE'),
+                        inactive_until: partialMeta && typeof partialMeta.inactive_until !== 'undefined' ? String(partialMeta.inactive_until || '') : (existing.inactive_until || ''),
+                        inactive_announcement: partialMeta && typeof partialMeta.inactive_announcement !== 'undefined' ? String(partialMeta.inactive_announcement || '').trim() : (existing.inactive_announcement || ''),
+                    };
+                    counterMetaById[counterId] = merged;
+                    applyCounterAvailability(counterId);
+                }
+
+                function applyCounterAvailability(counterId) {
+                    if (!counterId) return;
+                    var form = formsByCounterId[counterId];
+                    var quickButton = counterButtonsById[counterId];
+                    var meta = counterMetaById[counterId] || {};
+                    var available = isCounterAvailable(meta);
+
+                    if (form) {
+                        var submitButton = form.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = !available;
+                            submitButton.classList.toggle('cursor-not-allowed', !available);
+                            submitButton.classList.toggle('opacity-80', !available);
+                            submitButton.classList.toggle('hover:-translate-y-1', available);
+                            submitButton.classList.toggle('hover:border-brand-200', available);
+                            submitButton.classList.toggle('hover:shadow-warm', available);
+                        }
+                    }
+
+                    if (quickButton) {
+                        quickButton.classList.toggle('cursor-not-allowed', !available);
+                        quickButton.classList.toggle('opacity-70', !available);
+                        quickButton.classList.toggle('hover:-translate-y-1', available);
+                        quickButton.classList.toggle('hover:border-brand-200', available);
+                        quickButton.classList.toggle('hover:shadow-warm', available);
+                    }
+
+                }
+
                 forms.forEach(function (form) {
                     var counterId = form.getAttribute('data-counter-id');
                     if (counterId) {
                         formsByCounterId[counterId] = form;
+                        setCounterMeta(counterId, {
+                            staff_status: form.getAttribute('data-staff-status'),
+                            inactive_until: form.getAttribute('data-inactive-until'),
+                            inactive_announcement: form.getAttribute('data-inactive-announcement'),
+                        });
                     }
                     var rawCode = form.getAttribute('data-counter-code');
                     var normalized = normalizeCode(rawCode);
@@ -379,6 +512,12 @@
                         }
                     }
                     form.addEventListener('submit', function (event) {
+                        var meta = counterMetaById[counterId] || {};
+                        if (!isCounterAvailable(meta)) {
+                            event.preventDefault();
+                            showUnavailableNotice(meta);
+                            return;
+                        }
                         event.preventDefault();
                         submitToPrintWindow(form);
                     });
@@ -386,9 +525,23 @@
 
                 var counterButtons = document.querySelectorAll('[data-counter-btn="true"]');
                 counterButtons.forEach(function (button) {
+                    var buttonCounterId = button.getAttribute('data-counter-id');
+                    if (buttonCounterId) {
+                        counterButtonsById[buttonCounterId] = button;
+                        setCounterMeta(buttonCounterId, {
+                            staff_status: button.getAttribute('data-staff-status'),
+                            inactive_until: button.getAttribute('data-inactive-until'),
+                            inactive_announcement: button.getAttribute('data-inactive-announcement'),
+                        });
+                    }
                     button.addEventListener('click', function () {
                         var counterId = button.getAttribute('data-counter-id');
                         if (!counterId) return;
+                        var meta = counterMetaById[counterId] || {};
+                        if (!isCounterAvailable(meta)) {
+                            showUnavailableNotice(meta);
+                            return;
+                        }
                         var form = formsByCounterId[counterId];
                         if (form) {
                             submitToPrintWindow(form);
@@ -423,6 +576,12 @@
                     if (!code) return;
                     var form = findFormByCode(code);
                     if (form) {
+                        var counterId = form.getAttribute('data-counter-id');
+                        var meta = counterMetaById[counterId] || {};
+                        if (!isCounterAvailable(meta)) {
+                            showUnavailableNotice(meta);
+                            return;
+                        }
                         submitToPrintWindow(form);
                     }
                 }
@@ -456,6 +615,34 @@
                     if (keyTimer) clearTimeout(keyTimer);
                     keyTimer = setTimeout(finalizeKeyBuffer, submitDelay);
                 });
+
+                window.updateGuestCounterStates = function (guestCounters) {
+                    if (!guestCounters || !guestCounters.length) return;
+                    guestCounters.forEach(function (counter) {
+                        var counterId = counter && counter.counter_id ? String(counter.counter_id) : '';
+                        if (!counterId) return;
+
+                        setCounterMeta(counterId, {
+                            staff_status: counter.staff_status,
+                            inactive_until: counter.inactive_until,
+                            inactive_announcement: counter.inactive_announcement,
+                        });
+
+                        var form = formsByCounterId[counterId];
+                        if (form) {
+                            form.setAttribute('data-staff-status', String(counter.staff_status || ''));
+                            form.setAttribute('data-inactive-until', String(counter.inactive_until || ''));
+                            form.setAttribute('data-inactive-announcement', String(counter.inactive_announcement || ''));
+                        }
+                        var button = counterButtonsById[counterId];
+                        if (button) {
+                            button.setAttribute('data-staff-status', String(counter.staff_status || ''));
+                            button.setAttribute('data-inactive-until', String(counter.inactive_until || ''));
+                            button.setAttribute('data-inactive-announcement', String(counter.inactive_announcement || ''));
+                        }
+                    });
+                };
+
             })();
         </script>
 
@@ -575,6 +762,9 @@
                         var waiting = counter && typeof counter.waiting_count !== 'undefined' ? counter.waiting_count : '-';
                         el.textContent = waiting;
                     });
+                    if (typeof window.updateGuestCounterStates === 'function') {
+                        window.updateGuestCounterStates(guestCounters);
+                    }
                 }
 
                 function speak(call) {

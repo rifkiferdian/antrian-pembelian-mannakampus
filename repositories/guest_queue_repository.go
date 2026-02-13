@@ -21,6 +21,39 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 			c.ticket_prefix,
 			COALESCE(sc.category_name, '') AS category_name,
 			COALESCE(GROUP_CONCAT(DISTINCT u.name ORDER BY u.name SEPARATOR '||'), '') AS staff_names,
+			CASE
+				WHEN EXISTS (
+					SELECT 1 FROM counter_staffs cs_active
+					WHERE cs_active.counter_id = c.id AND cs_active.status = 'ACTIVE'
+				) THEN 'ACTIVE'
+				WHEN EXISTS (
+					SELECT 1 FROM counter_staffs cs_inactive
+					WHERE cs_inactive.counter_id = c.id AND cs_inactive.status = 'INACTIVE'
+				) THEN 'INACTIVE'
+				WHEN EXISTS (
+					SELECT 1 FROM counter_staffs cs_rest
+					WHERE cs_rest.counter_id = c.id AND cs_rest.status = 'REST'
+				) THEN 'REST'
+				ELSE 'INACTIVE'
+			END AS staff_status,
+			COALESCE((
+				SELECT DATE_FORMAT(cs_inactive.inactive_until, '%Y-%m-%dT%H:%i:%s')
+				FROM counter_staffs cs_inactive
+				WHERE cs_inactive.counter_id = c.id
+				  AND cs_inactive.status = 'INACTIVE'
+				  AND cs_inactive.inactive_until IS NOT NULL
+				ORDER BY cs_inactive.inactive_until DESC, cs_inactive.id DESC
+				LIMIT 1
+			), '') AS inactive_until,
+			COALESCE((
+				SELECT cs_inactive.inactive_announcement
+				FROM counter_staffs cs_inactive
+				WHERE cs_inactive.counter_id = c.id
+				  AND cs_inactive.status = 'INACTIVE'
+				  AND COALESCE(cs_inactive.inactive_announcement, '') <> ''
+				ORDER BY cs_inactive.id DESC
+				LIMIT 1
+			), '') AS inactive_announcement,
 			(
 				SELECT COUNT(*)
 				FROM queue_tickets qt
@@ -53,6 +86,9 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 			&c.TicketPrefix,
 			&c.CategoryName,
 			&staffNames,
+			&c.StaffStatus,
+			&c.InactiveUntil,
+			&c.InactiveAnnouncement,
 			&c.WaitingCount,
 		); err != nil {
 			return nil, err
@@ -60,9 +96,11 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 		if c.CategoryName == "" {
 			c.CategoryName = c.CounterName
 		}
+		c.StaffStatus = strings.ToUpper(strings.TrimSpace(c.StaffStatus))
 		if staffNames != "" {
 			c.StaffNames = strings.Split(staffNames, "||")
 		}
+		c.InactiveAnnouncement = strings.TrimSpace(c.InactiveAnnouncement)
 		counters = append(counters, c)
 	}
 
