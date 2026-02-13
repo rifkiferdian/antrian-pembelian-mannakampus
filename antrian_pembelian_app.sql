@@ -48,7 +48,11 @@ CREATE TABLE `counter_staffs` (
   `counter_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `status` enum('ACTIVE','REST','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `inactive_started_at` datetime DEFAULT NULL,
+  `inactive_until` datetime DEFAULT NULL,
+  `inactive_announcement` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -555,6 +559,11 @@ COMMIT;
 ALTER TABLE queue_tickets
   ADD COLUMN service_duration_seconds INT(11) UNSIGNED NULL AFTER done_at;
 
+ALTER TABLE counter_staffs
+  ADD COLUMN IF NOT EXISTS inactive_started_at DATETIME NULL AFTER status,
+  ADD COLUMN IF NOT EXISTS inactive_until DATETIME NULL AFTER inactive_started_at,
+  ADD COLUMN IF NOT EXISTS inactive_announcement VARCHAR(255) NULL AFTER inactive_until,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER created_at;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

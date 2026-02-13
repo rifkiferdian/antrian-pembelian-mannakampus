@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // CounterStaff merepresentasikan data pada tabel counter_staffs.
 type CounterStaff struct {
 	ID               int
@@ -30,4 +32,22 @@ type CounterStaffUpdateInput struct {
 	CounterID int
 	UserID    int
 	Status    string
+}
+
+// CounterStaffStatusUpdateInput menampung data perubahan status staff di dashboard.
+type CounterStaffStatusUpdateInput struct {
+	CounterID            int
+	UserID               int
+	Status               string
+	InactiveStartedAt    *time.Time
+	InactiveUntil        *time.Time
+	InactiveAnnouncement string
+}
+
+// CounterStaffStatusDetail menampung detail status staff untuk kebutuhan dashboard.
+type CounterStaffStatusDetail struct {
+	Status               string
+	InactiveStartedAt    string
+	InactiveUntil        string
+	InactiveAnnouncement string
 }

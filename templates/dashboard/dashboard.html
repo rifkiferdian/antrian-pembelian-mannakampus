@@ -109,10 +109,16 @@
                                             AKTIF
                                         </button>
                                         <button id="status-rest-btn" type="button" data-counter-status="REST" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] transition">
-                                            <span style="color: #ea580c;" id="status-rest-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-sm">
-                                                <i style="color: #ea580c;" class="bx bx-coffee"></i>
+                                            <span id="status-rest-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-sm">
+                                                <i class="bx bx-coffee"></i>
                                             </span>
                                             ISTIRAHAT
+                                        </button>
+                                        <button id="status-inactive-btn" type="button" data-counter-status="INACTIVE" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold tracking-[0.18em] transition">
+                                            <span id="status-inactive-icon" class="flex h-6 w-6 items-center justify-center rounded-full text-sm">
+                                                <i class="bx bx-pause-circle"></i>
+                                            </span>
+                                            Non-Aktif
                                         </button>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2">
@@ -345,8 +351,10 @@
                 var actionButtons = document.querySelectorAll('[data-queue-action][data-queue-static="true"]');
                 var statusActiveBtn = document.getElementById('status-active-btn');
                 var statusRestBtn = document.getElementById('status-rest-btn');
+                var statusInactiveBtn = document.getElementById('status-inactive-btn');
                 var statusActiveIcon = document.getElementById('status-active-icon');
                 var statusRestIcon = document.getElementById('status-rest-icon');
+                var statusInactiveIcon = document.getElementById('status-inactive-icon');
                 var servingTicketEl = document.getElementById('serving-ticket');
                 var servingCategoryEl = document.getElementById('serving-category');
                 var servingEmptyEl = document.getElementById('serving-empty');
@@ -355,6 +363,11 @@
                 var waitingListEl = document.getElementById('waiting-list');
                 var timerInterval;
                 var currentStaffStatus = 'ACTIVE';
+                var currentInactiveConfig = {
+                    inactive_started_at: '',
+                    inactive_until: '',
+                    inactive_announcement: '',
+                };
 
                 var endpoints = {
                     next: '/dashboard/queue/next',
@@ -420,15 +433,17 @@
 
                 function applyStaffStatus(rawStatus) {
                     var status = (rawStatus || '').toString().trim().toUpperCase();
-                    if (status !== 'REST') {
+                    if (status !== 'REST' && status !== 'INACTIVE') {
                         status = 'ACTIVE';
                     }
                     currentStaffStatus = status;
 
                     var activeOn = ['bg-orange-500', 'text-white', 'shadow-sm', 'hover:bg-orange-600'];
                     var activeOff = ['text-slate-500', 'hover:bg-slate-100'];
-                    var restOn = ['bg-slate-100', 'text-slate-700', 'shadow-sm'];
+                    var restOn = ['bg-amber-500', 'text-white', 'shadow-sm', 'hover:bg-amber-600'];
                     var restOff = ['text-slate-500', 'hover:bg-slate-100'];
+                    var inactiveOn = ['bg-rose-500', 'text-white', 'shadow-sm', 'hover:bg-rose-600'];
+                    var inactiveOff = ['text-slate-500', 'hover:bg-slate-100'];
                     var iconOn = ['bg-white/20', 'text-white'];
                     var iconOff = ['bg-slate-100', 'text-slate-500'];
 
@@ -456,13 +471,26 @@
                         }
                     }
 
+                    if (statusInactiveBtn) {
+                        if (status === 'INACTIVE') {
+                            toggleClasses(statusInactiveBtn, inactiveOn, inactiveOff);
+                            toggleClasses(statusInactiveIcon, iconOn, iconOff);
+                            statusInactiveBtn.setAttribute('aria-pressed', 'true');
+                        } else {
+                            toggleClasses(statusInactiveBtn, inactiveOff, inactiveOn);
+                            toggleClasses(statusInactiveIcon, iconOff, iconOn);
+                            statusInactiveBtn.setAttribute('aria-pressed', 'false');
+                        }
+                    }
+
                     setQueueButtonsEnabled(status === 'ACTIVE');
                 }
 
                 function setStatusButtonsLoading(isLoading) {
                     if (statusActiveBtn) statusActiveBtn.disabled = isLoading;
                     if (statusRestBtn) statusRestBtn.disabled = isLoading;
-                    var buttons = [statusActiveBtn, statusRestBtn];
+                    if (statusInactiveBtn) statusInactiveBtn.disabled = isLoading;
+                    var buttons = [statusActiveBtn, statusRestBtn, statusInactiveBtn];
                     buttons.forEach(function (button) {
                         if (!button) return;
                         button.setAttribute('data-loading', isLoading ? '1' : '0');
@@ -472,6 +500,101 @@
                             button.classList.remove('opacity-70', 'cursor-wait');
                         }
                     });
+                }
+
+                function setInactiveConfig(data) {
+                    currentInactiveConfig.inactive_started_at = data && data.inactive_started_at ? String(data.inactive_started_at) : '';
+                    currentInactiveConfig.inactive_until = data && data.inactive_until ? String(data.inactive_until) : '';
+                    currentInactiveConfig.inactive_announcement = data && data.inactive_announcement ? String(data.inactive_announcement) : '';
+                }
+
+                function getStaffUnavailableMessage() {
+                    if (currentStaffStatus === 'REST') {
+                        return 'Loket sedang istirahat';
+                    }
+                    if (currentStaffStatus === 'INACTIVE') {
+                        if (currentInactiveConfig.inactive_announcement) {
+                            return currentInactiveConfig.inactive_announcement;
+                        }
+                        return 'Loket sedang non-aktif';
+                    }
+                    return '';
+                }
+
+                function escapeHtml(value) {
+                    return String(value || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                async function openInactiveModal() {
+                    if (!window.Swal || typeof window.Swal.fire !== 'function') {
+                        notify('warning', 'Modal tidak tersedia');
+                        return;
+                    }
+
+                    var result = await window.Swal.fire({
+                        title: 'Set Non-Aktif Loket',
+                        html:
+                            '<div class="space-y-3 text-left">' +
+                                '<div>' +
+                                    '<label for="inactive-started-at" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_started_at</label>' +
+                                    '<input id="inactive-started-at" type="datetime-local" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" value="' + escapeHtml(currentInactiveConfig.inactive_started_at || '') + '">' +
+                                '</div>' +
+                                '<div>' +
+                                    '<label for="inactive-until" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_until</label>' +
+                                    '<input id="inactive-until" type="datetime-local" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" value="' + escapeHtml(currentInactiveConfig.inactive_until || '') + '">' +
+                                '</div>' +
+                                '<div>' +
+                                    '<label for="inactive-announcement" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_announcement</label>' +
+                                    '<textarea id="inactive-announcement" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" maxlength="255" placeholder="Contoh: Mohon maaf, loket sedang meeting hingga pukul 14:00.">' + escapeHtml(currentInactiveConfig.inactive_announcement || '') + '</textarea>' +
+                                '</div>' +
+                            '</div>',
+                        showCancelButton: true,
+                        confirmButtonText: 'Simpan Non-Aktif',
+                        cancelButtonText: 'Batal',
+                        focusConfirm: false,
+                        preConfirm: function () {
+                            var startedAt = document.getElementById('inactive-started-at');
+                            var until = document.getElementById('inactive-until');
+                            var announcement = document.getElementById('inactive-announcement');
+                            var startedAtValue = startedAt ? String(startedAt.value || '').trim() : '';
+                            var untilValue = until ? String(until.value || '').trim() : '';
+                            var announcementValue = announcement ? String(announcement.value || '').trim() : '';
+
+                            if (!startedAtValue || !untilValue) {
+                                window.Swal.showValidationMessage('inactive_started_at dan inactive_until wajib diisi');
+                                return false;
+                            }
+
+                            var startedAtTime = new Date(startedAtValue).getTime();
+                            var untilTime = new Date(untilValue).getTime();
+                            if (Number.isNaN(startedAtTime) || Number.isNaN(untilTime) || untilTime <= startedAtTime) {
+                                window.Swal.showValidationMessage('inactive_until harus lebih besar dari inactive_started_at');
+                                return false;
+                            }
+
+                            if (!announcementValue) {
+                                window.Swal.showValidationMessage('inactive_announcement wajib diisi');
+                                return false;
+                            }
+
+                            return {
+                                inactive_started_at: startedAtValue,
+                                inactive_until: untilValue,
+                                inactive_announcement: announcementValue,
+                            };
+                        },
+                    });
+
+                    if (!result.isConfirmed || !result.value) {
+                        return;
+                    }
+
+                    await updateStaffStatus('INACTIVE', result.value);
                 }
 
                 function formatDuration(totalSeconds) {
@@ -641,9 +764,8 @@
                         }
                         renderServing(data.serving || {});
                         renderWaiting(data.waiting_items || [], data.waiting_total || 0);
-                        if (typeof data.staff_status === 'string' && data.staff_status !== '') {
-                            applyStaffStatus(data.staff_status);
-                        }
+                        setInactiveConfig(data);
+                        applyStaffStatus(data.staff_status || 'ACTIVE');
                     } catch (err) {
                         notify('error', err.message || 'Terjadi kesalahan');
                     }
@@ -694,8 +816,8 @@
                         notify('warning', 'Pilih loket terlebih dahulu');
                         return;
                     }
-                    if (currentStaffStatus === 'REST') {
-                        notify('warning', 'Loket sedang istirahat');
+                    if (currentStaffStatus !== 'ACTIVE') {
+                        notify('warning', getStaffUnavailableMessage());
                         return;
                     }
 
@@ -736,7 +858,7 @@
                     }
                 }
 
-                async function updateStaffStatus(status) {
+                async function updateStaffStatus(status, options) {
                     var counterId = counterSelect ? Number(counterSelect.value || 0) : 0;
                     if (!counterId) {
                         notify('warning', 'Pilih loket terlebih dahulu');
@@ -744,12 +866,29 @@
                     }
 
                     var normalized = (status || '').toString().trim().toUpperCase();
-                    if (normalized !== 'ACTIVE' && normalized !== 'REST') {
+                    if (normalized !== 'ACTIVE' && normalized !== 'REST' && normalized !== 'INACTIVE') {
                         notify('warning', 'Status tidak valid');
                         return;
                     }
-                    if (normalized === currentStaffStatus) {
+                    if (normalized === currentStaffStatus && normalized !== 'INACTIVE') {
                         return;
+                    }
+
+                    var payload = {
+                        counter_id: counterId,
+                        status: normalized,
+                    };
+                    if (normalized === 'INACTIVE') {
+                        var inactiveStartedAt = options && options.inactive_started_at ? String(options.inactive_started_at).trim() : '';
+                        var inactiveUntil = options && options.inactive_until ? String(options.inactive_until).trim() : '';
+                        var inactiveAnnouncement = options && options.inactive_announcement ? String(options.inactive_announcement).trim() : '';
+                        if (!inactiveStartedAt || !inactiveUntil || !inactiveAnnouncement) {
+                            notify('warning', 'Form non-aktif belum lengkap');
+                            return;
+                        }
+                        payload.inactive_started_at = inactiveStartedAt;
+                        payload.inactive_until = inactiveUntil;
+                        payload.inactive_announcement = inactiveAnnouncement;
                     }
 
                     setStatusButtonsLoading(true);
@@ -757,13 +896,14 @@
                         var response = await fetch(endpoints.status, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ counter_id: counterId, status: normalized }),
+                            body: JSON.stringify(payload),
                         });
                         var data = await response.json();
                         if (!response.ok || !data.ok) {
                             throw new Error(data.message || 'Gagal memperbarui status loket');
                         }
                         applyStaffStatus(data.status || normalized);
+                        setInactiveConfig(data);
                         notify('success', data.message || 'Status loket diperbarui');
                     } catch (err) {
                         notify('error', err.message || 'Terjadi kesalahan');
@@ -788,6 +928,12 @@
                 if (statusRestBtn) {
                     statusRestBtn.addEventListener('click', function () {
                         updateStaffStatus('REST');
+                    });
+                }
+
+                if (statusInactiveBtn) {
+                    statusInactiveBtn.addEventListener('click', function () {
+                        openInactiveModal();
                     });
                 }
 

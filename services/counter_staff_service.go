@@ -83,28 +83,54 @@ func (s *CounterStaffService) GetStatusByCounterAndUser(counterID, userID int) (
 	return status, nil
 }
 
-func (s *CounterStaffService) UpdateStatusByCounterAndUser(counterID, userID int, status string) (string, error) {
-	if counterID <= 0 || userID <= 0 {
-		return "", errors.New("counter atau user tidak valid")
+func (s *CounterStaffService) UpdateStatusByCounterAndUser(input models.CounterStaffStatusUpdateInput) (models.CounterStaffStatusDetail, error) {
+	if input.CounterID <= 0 || input.UserID <= 0 {
+		return models.CounterStaffStatusDetail{}, errors.New("counter atau user tidak valid")
 	}
 
-	normalized, err := normalizeCounterStaffStatus(status)
+	normalized, err := normalizeCounterStaffStatus(input.Status)
 	if err != nil {
-		return "", err
-	}
-	if normalized != "ACTIVE" && normalized != "REST" {
-		return "", errors.New("status harus aktif atau istirahat")
+		return models.CounterStaffStatusDetail{}, err
 	}
 
-	updated, err := s.Repo.UpdateStatusByCounterAndUser(counterID, userID, normalized)
+	input.Status = normalized
+	if normalized == "INACTIVE" {
+		if input.InactiveStartedAt == nil || input.InactiveUntil == nil {
+			return models.CounterStaffStatusDetail{}, errors.New("jadwal non-aktif wajib diisi")
+		}
+		if !input.InactiveUntil.After(*input.InactiveStartedAt) {
+			return models.CounterStaffStatusDetail{}, errors.New("inactive_until harus setelah inactive_started_at")
+		}
+		input.InactiveAnnouncement = strings.TrimSpace(input.InactiveAnnouncement)
+		if input.InactiveAnnouncement == "" {
+			return models.CounterStaffStatusDetail{}, errors.New("pengumuman non-aktif wajib diisi")
+		}
+		if len(input.InactiveAnnouncement) > 255 {
+			return models.CounterStaffStatusDetail{}, errors.New("pengumuman non-aktif maksimal 255 karakter")
+		}
+	} else {
+		input.InactiveStartedAt = nil
+		input.InactiveUntil = nil
+		input.InactiveAnnouncement = ""
+	}
+
+	updated, err := s.Repo.UpdateStatusByCounterAndUser(input)
 	if err != nil {
-		return "", err
+		return models.CounterStaffStatusDetail{}, err
 	}
 	if !updated {
-		return "", errors.New("staff belum terdaftar pada loket ini")
+		return models.CounterStaffStatusDetail{}, errors.New("staff belum terdaftar pada loket ini")
 	}
 
-	return normalized, nil
+	detail, exists, err := s.Repo.GetStatusDetailByCounterAndUser(input.CounterID, input.UserID)
+	if err != nil {
+		return models.CounterStaffStatusDetail{}, err
+	}
+	if !exists {
+		return models.CounterStaffStatusDetail{}, errors.New("staff belum terdaftar pada loket ini")
+	}
+
+	return detail, nil
 }
 
 func normalizeCounterStaffStatus(status string) (string, error) {

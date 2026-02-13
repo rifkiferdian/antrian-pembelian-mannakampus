@@ -36,15 +36,21 @@ func DashboardQueueState(c *gin.Context) {
 	}
 
 	var staffStatus string
+	var inactiveStartedAt string
+	var inactiveUntil string
+	var inactiveAnnouncement string
 	userID := getSessionUserID(c)
 	if userID > 0 {
 		counterStaffRepo := &repositories.CounterStaffRepository{DB: config.DB}
-		status, _, statusErr := counterStaffRepo.GetStatusByCounterAndUser(counter.ID, userID)
+		detail, _, statusErr := counterStaffRepo.GetStatusDetailByCounterAndUser(counter.ID, userID)
 		if statusErr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": statusErr.Error()})
 			return
 		}
-		staffStatus = status
+		staffStatus = detail.Status
+		inactiveStartedAt = detail.InactiveStartedAt
+		inactiveUntil = detail.InactiveUntil
+		inactiveAnnouncement = detail.InactiveAnnouncement
 	}
 
 	serving, waitingItems, waitingTotal, err := buildDashboardQueueState(counter)
@@ -54,11 +60,14 @@ func DashboardQueueState(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"ok":            true,
-		"counter_id":    counter.ID,
-		"staff_status":  staffStatus,
-		"serving":       serving,
-		"waiting_items": waitingItems,
-		"waiting_total": waitingTotal,
+		"ok":                    true,
+		"counter_id":            counter.ID,
+		"staff_status":          staffStatus,
+		"inactive_started_at":   inactiveStartedAt,
+		"inactive_until":        inactiveUntil,
+		"inactive_announcement": inactiveAnnouncement,
+		"serving":               serving,
+		"waiting_items":         waitingItems,
+		"waiting_total":         waitingTotal,
 	})
 }

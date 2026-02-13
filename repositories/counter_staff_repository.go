@@ -148,17 +148,90 @@ func (r *CounterStaffRepository) GetStatusByCounterAndUser(counterID, userID int
 	return status, true, nil
 }
 
-// UpdateStatusByCounterAndUser memperbarui status staff berdasarkan counter dan user.
-func (r *CounterStaffRepository) UpdateStatusByCounterAndUser(counterID, userID int, status string) (bool, error) {
+// GetStatusDetailByCounterAndUser mengambil detail status staff berdasarkan counter dan user.
+func (r *CounterStaffRepository) GetStatusDetailByCounterAndUser(counterID, userID int) (models.CounterStaffStatusDetail, bool, error) {
 	if counterID <= 0 || userID <= 0 {
+		return models.CounterStaffStatusDetail{}, false, nil
+	}
+
+	var (
+		detail               models.CounterStaffStatusDetail
+		inactiveStartedAt    sql.NullTime
+		inactiveUntil        sql.NullTime
+		inactiveAnnouncement sql.NullString
+	)
+
+	err := r.DB.QueryRow(`
+		SELECT
+			status,
+			inactive_started_at,
+			inactive_until,
+			inactive_announcement
+		FROM counter_staffs
+		WHERE counter_id = ? AND user_id = ?
+		LIMIT 1
+	`, counterID, userID).Scan(
+		&detail.Status,
+		&inactiveStartedAt,
+		&inactiveUntil,
+		&inactiveAnnouncement,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.CounterStaffStatusDetail{}, false, nil
+		}
+		return models.CounterStaffStatusDetail{}, false, err
+	}
+
+	if inactiveStartedAt.Valid {
+		detail.InactiveStartedAt = inactiveStartedAt.Time.Format("2006-01-02T15:04")
+	}
+	if inactiveUntil.Valid {
+		detail.InactiveUntil = inactiveUntil.Time.Format("2006-01-02T15:04")
+	}
+	if inactiveAnnouncement.Valid {
+		detail.InactiveAnnouncement = strings.TrimSpace(inactiveAnnouncement.String)
+	}
+
+	return detail, true, nil
+}
+
+// UpdateStatusByCounterAndUser memperbarui status staff berdasarkan counter dan user.
+func (r *CounterStaffRepository) UpdateStatusByCounterAndUser(input models.CounterStaffStatusUpdateInput) (bool, error) {
+	if input.CounterID <= 0 || input.UserID <= 0 {
 		return false, nil
+	}
+
+	var inactiveStartedAt interface{}
+	var inactiveUntil interface{}
+	if input.InactiveStartedAt != nil {
+		inactiveStartedAt = input.InactiveStartedAt.Format("2006-01-02 15:04:05")
+	}
+	if input.InactiveUntil != nil {
+		inactiveUntil = input.InactiveUntil.Format("2006-01-02 15:04:05")
+	}
+
+	var inactiveAnnouncement interface{}
+	if strings.TrimSpace(input.InactiveAnnouncement) != "" {
+		inactiveAnnouncement = strings.TrimSpace(input.InactiveAnnouncement)
 	}
 
 	res, err := r.DB.Exec(`
 		UPDATE counter_staffs
-		SET status = ?
+		SET
+			status = ?,
+			inactive_started_at = ?,
+			inactive_until = ?,
+			inactive_announcement = ?
 		WHERE counter_id = ? AND user_id = ?
-	`, status, counterID, userID)
+	`,
+		input.Status,
+		inactiveStartedAt,
+		inactiveUntil,
+		inactiveAnnouncement,
+		input.CounterID,
+		input.UserID,
+	)
 	if err != nil {
 		return false, err
 	}
