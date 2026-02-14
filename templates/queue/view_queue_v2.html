@@ -401,7 +401,7 @@
                         && inactiveUntil.getDate() === now.getDate();
 
                     if (sameDate) {
-                        return 'Kembali aktif jam ' + timeText + '.';
+                        return 'Kembali aktif Pukul ' + timeText + '.';
                     }
 
                     var dateText = inactiveUntil.toLocaleDateString('id-ID', {
@@ -409,7 +409,7 @@
                         month: 'long',
                         year: 'numeric',
                     });
-                    return 'Kembali aktif tanggal ' + dateText + ' jam ' + timeText + '.';
+                    return 'Kembali aktif tanggal ' + dateText + ' Pukul ' + timeText + '.';
                 }
 
                 function getUnavailableDisplayBase(status) {
@@ -449,9 +449,26 @@
                     speakUnavailableNotice(meta);
                 }
 
+                function isRestStatus(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    return status === 'REST';
+                }
+
+                function speakRestQueueNotice(meta) {
+                    if (!isRestStatus(meta)) return;
+                    if (!('speechSynthesis' in window)) return;
+                    var utter = new SpeechSynthesisUtterance('Loket sedang istirahat. silahkan ambil antrian dan menunggu.');
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
                 function isCounterAvailable(meta) {
                     var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
-                    if (status === 'ACTIVE') return true;
+                    if (status === 'ACTIVE' || status === 'REST') return true;
                     if (status === 'INACTIVE') {
                         var inactiveUntil = parseInactiveUntil(meta && meta.inactive_until ? meta.inactive_until : '');
                         if (inactiveUntil && inactiveUntil.getTime() <= Date.now()) {
@@ -537,6 +554,7 @@
                             return;
                         }
                         event.preventDefault();
+                        speakRestQueueNotice(meta);
                         submitToPrintWindow(form);
                     });
                 });
@@ -560,6 +578,7 @@
                             showUnavailableNotice(meta);
                             return;
                         }
+                        speakRestQueueNotice(meta);
                         var form = formsByCounterId[counterId];
                         if (form) {
                             submitToPrintWindow(form);
@@ -600,6 +619,7 @@
                             showUnavailableNotice(meta);
                             return;
                         }
+                        speakRestQueueNotice(meta);
                         submitToPrintWindow(form);
                     }
                 }
