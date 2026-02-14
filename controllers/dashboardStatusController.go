@@ -9,6 +9,7 @@ import (
 
 	"stok-hadiah/config"
 	"stok-hadiah/models"
+	"stok-hadiah/realtime"
 	"stok-hadiah/repositories"
 	"stok-hadiah/services"
 
@@ -92,14 +93,23 @@ func DashboardCounterStatus(c *gin.Context) {
 		message = "Status loket non-aktif"
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	resp := gin.H{
 		"ok":                    true,
 		"status":                detail.Status,
 		"inactive_started_at":   detail.InactiveStartedAt,
 		"inactive_until":        detail.InactiveUntil,
 		"inactive_announcement": detail.InactiveAnnouncement,
 		"message":               message,
-	})
+	}
+
+	payload, payloadErr := buildQueueViewPayload(counter.StoreID, "staff_status")
+	if payloadErr == nil {
+		realtime.QueueHub.Broadcast(counter.StoreID, payload)
+	} else {
+		resp["warning"] = "Status tersimpan, tetapi gagal mengirim update realtime"
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 func parseDashboardStatusTime(raw string) (*time.Time, error) {
