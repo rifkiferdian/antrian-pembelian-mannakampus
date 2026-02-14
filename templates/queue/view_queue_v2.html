@@ -387,18 +387,29 @@
                 function formatRemainingText(inactiveUntilRaw) {
                     var inactiveUntil = parseInactiveUntil(inactiveUntilRaw);
                     if (!inactiveUntil) return '';
-                    var diffMs = inactiveUntil.getTime() - Date.now();
+                    var now = new Date();
+                    var diffMs = inactiveUntil.getTime() - now.getTime();
                     if (diffMs <= 0) return 'Jadwal aktif kembali sudah lewat.';
-                    var totalMinutes = Math.ceil(diffMs / 60000);
-                    if (totalMinutes < 60) {
-                        return 'Kembali aktif ' + totalMinutes + ' menit lagi.';
+
+                    var timeText = inactiveUntil.toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    });
+
+                    var sameDate = inactiveUntil.getFullYear() === now.getFullYear()
+                        && inactiveUntil.getMonth() === now.getMonth()
+                        && inactiveUntil.getDate() === now.getDate();
+
+                    if (sameDate) {
+                        return 'Kembali aktif jam ' + timeText + '.';
                     }
-                    var hours = Math.floor(totalMinutes / 60);
-                    var minutes = totalMinutes % 60;
-                    if (minutes === 0) {
-                        return 'Kembali aktif ' + hours + ' jam lagi.';
-                    }
-                    return 'Kembali aktif ' + hours + ' jam ' + minutes + ' menit lagi.';
+
+                    var dateText = inactiveUntil.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                    });
+                    return 'Kembali aktif tanggal ' + dateText + ' jam ' + timeText + '.';
                 }
 
                 function getUnavailableDisplayBase(status) {
