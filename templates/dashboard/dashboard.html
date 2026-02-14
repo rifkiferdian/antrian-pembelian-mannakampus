@@ -530,27 +530,39 @@
                         .replace(/'/g, '&#039;');
                 }
 
+                function toDateTimeLocalValue(date) {
+                    var d = date instanceof Date ? date : new Date(date);
+                    if (Number.isNaN(d.getTime())) return '';
+                    var year = d.getFullYear();
+                    var month = String(d.getMonth() + 1).padStart(2, '0');
+                    var day = String(d.getDate()).padStart(2, '0');
+                    var hour = String(d.getHours()).padStart(2, '0');
+                    var minute = String(d.getMinutes()).padStart(2, '0');
+                    return year + '-' + month + '-' + day + 'T' + hour + ':' + minute;
+                }
+
                 async function openInactiveModal() {
                     if (!window.Swal || typeof window.Swal.fire !== 'function') {
                         notify('warning', 'Modal tidak tersedia');
                         return;
                     }
+                    var startedAtNow = toDateTimeLocalValue(new Date());
 
                     var result = await window.Swal.fire({
                         title: 'Set Non-Aktif Loket',
                         html:
                             '<div class="space-y-3 text-left">' +
                                 '<div>' +
-                                    '<label for="inactive-started-at" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_started_at</label>' +
-                                    '<input id="inactive-started-at" type="datetime-local" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" value="' + escapeHtml(currentInactiveConfig.inactive_started_at || '') + '">' +
+                                    '<label for="inactive-started-at" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Mulai Waktu tidak aktif</label>' +
+                                    '<input id="inactive-started-at" type="datetime-local" class="w-full cursor-not-allowed rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-500 outline-none" value="' + escapeHtml(startedAtNow) + '" disabled>' +
                                 '</div>' +
                                 '<div>' +
-                                    '<label for="inactive-until" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_until</label>' +
+                                    '<label for="inactive-until" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Selesai Waktu tidak aktif</label>' +
                                     '<input id="inactive-until" type="datetime-local" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" value="' + escapeHtml(currentInactiveConfig.inactive_until || '') + '">' +
                                 '</div>' +
                                 '<div>' +
-                                    '<label for="inactive-announcement" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">inactive_announcement</label>' +
-                                    '<textarea id="inactive-announcement" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" maxlength="255" placeholder="Contoh: Mohon maaf, loket sedang meeting hingga pukul 14:00.">' + escapeHtml(currentInactiveConfig.inactive_announcement || '') + '</textarea>' +
+                                    '<label for="inactive-announcement" class="mb-1 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Pengumuman tidak aktif</label>' +
+                                    '<textarea id="inactive-announcement" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-orange-400" maxlength="255" placeholder="Contoh: Mohon maaf, loket sedang tidak melayani ">' + escapeHtml(currentInactiveConfig.inactive_announcement || '') + '</textarea>' +
                                 '</div>' +
                             '</div>',
                         showCancelButton: true,
@@ -558,10 +570,9 @@
                         cancelButtonText: 'Batal',
                         focusConfirm: false,
                         preConfirm: function () {
-                            var startedAt = document.getElementById('inactive-started-at');
                             var until = document.getElementById('inactive-until');
                             var announcement = document.getElementById('inactive-announcement');
-                            var startedAtValue = startedAt ? String(startedAt.value || '').trim() : '';
+                            var startedAtValue = String(startedAtNow || '').trim();
                             var untilValue = until ? String(until.value || '').trim() : '';
                             var announcementValue = announcement ? String(announcement.value || '').trim() : '';
 
