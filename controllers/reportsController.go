@@ -7,12 +7,14 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"stok-hadiah/config"
 	"stok-hadiah/models"
 	"stok-hadiah/repositories"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,10 +22,18 @@ const reportDateLayout = "2006-01-02"
 
 func ReportsIndex(c *gin.Context) {
 	storeIDs := getSessionStoreIDs(c)
-	userID := getSessionUserID(c)
+	role := getSessionRole(c)
 
 	counterRepo := &repositories.CounterRepository{DB: config.DB}
-	counters, err := counterRepo.GetByStoreIDsAndUserID(storeIDs, userID)
+	counters := make([]models.Counter, 0)
+	var err error
+
+	if hasGlobalReportAccess(role) {
+		counters, err = counterRepo.GetByStoreIDs(storeIDs)
+	} else {
+		userID := getSessionUserID(c)
+		counters, err = counterRepo.GetByStoreIDsAndUserID(storeIDs, userID)
+	}
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -355,4 +365,56 @@ func formatDurationLabel(seconds int) string {
 	}
 
 	return fmt.Sprintf("%ds", secs)
+}
+
+func hasGlobalReportAccess(role string) bool {
+	role = strings.TrimSpace(strings.ToLower(role))
+	if role == "" {
+		return false
+	}
+
+	parts := strings.FieldsFunc(role, func(r rune) bool {
+		return r == ',' || r == ';' || r == '|'
+	})
+	if len(parts) == 0 {
+		parts = []string{role}
+	}
+
+	for _, part := range parts {
+		normalized := strings.TrimSpace(part)
+		normalized = strings.ReplaceAll(normalized, "_", "-")
+		normalized = strings.ReplaceAll(normalized, " ", "-")
+		switch normalized {
+		case "super-admin", "admin", "manager":
+			return true
+		}
+	}
+
+	return false
+}
+
+func getSessionRole(c *gin.Context) string {
+	sess := sessions.Default(c)
+	user := sess.Get("user")
+
+	switch val := user.(type) {
+	case models.SessionUser:
+		return strings.TrimSpace(val.Role)
+	case map[string]interface{}:
+		if role, ok := val["role"].(string); ok {
+			return strings.TrimSpace(role)
+		}
+		if role, ok := val["Role"].(string); ok {
+			return strings.TrimSpace(role)
+		}
+	case gin.H:
+		if role, ok := val["role"].(string); ok {
+			return strings.TrimSpace(role)
+		}
+		if role, ok := val["Role"].(string); ok {
+			return strings.TrimSpace(role)
+		}
+	}
+
+	return ""
 }
