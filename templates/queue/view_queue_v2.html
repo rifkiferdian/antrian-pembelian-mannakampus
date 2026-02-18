@@ -140,6 +140,7 @@
                                             data-print-window="true"
                                             data-counter-id="{{ .CounterID }}"
                                             data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                            data-counter-label="Loket {{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
                                             data-staff-status="{{ .StaffStatus }}"
                                             data-inactive-until="{{ .InactiveUntil }}"
                                             data-inactive-announcement="{{ .InactiveAnnouncement }}"
@@ -385,15 +386,44 @@
 
                 function getUnavailableDisplayBase(status) {
                     if (status === 'REST') {
-                        return 'Loket sedang istirahat.';
+                        return 'istirahat.';
                     }
-                    return 'Loket sedang non-aktif.';
+                    return 'sedang non-aktif.';
+                }
+
+                function getCounterVoiceLabel(meta) {
+                    var rawLabel = String(
+                        meta && (meta.counter_label || meta.counter_code || meta.counter_id)
+                            ? (meta.counter_label || meta.counter_code || meta.counter_id)
+                            : ''
+                    ).trim();
+                    if (!rawLabel) return 'Loket';
+                    if (rawLabel.toLowerCase().startsWith('loket')) {
+                        var suffix = rawLabel.slice(5).trim();
+                        return suffix ? 'Loket ' + suffix : 'Loket';
+                    }
+                    return 'Loket ' + rawLabel;
                 }
 
                 function getUnavailableVoiceMessage(meta) {
                     var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    var counterVoiceLabel = getCounterVoiceLabel(meta);
+                    if (status === 'REST') {
+                        return counterVoiceLabel + ' istirahat.';
+                    }
                     var announcement = String(meta && meta.inactive_announcement ? meta.inactive_announcement : '').trim();
-                    var voiceMessage = announcement || getUnavailableDisplayBase(status);
+                    var voiceMessage = '';
+                    if (announcement) {
+                        var lowerAnnouncement = announcement.toLowerCase();
+                        var lowerCounterLabel = counterVoiceLabel.toLowerCase();
+                        if (lowerAnnouncement.indexOf(lowerCounterLabel) !== -1) {
+                            voiceMessage = announcement;
+                        } else {
+                            voiceMessage = counterVoiceLabel + ' ' + announcement;
+                        }
+                    } else {
+                        voiceMessage = counterVoiceLabel + ' ' + getUnavailableDisplayBase(status);
+                    }
                     if (status === 'INACTIVE') {
                         var remainingText = formatRemainingText(meta && meta.inactive_until ? meta.inactive_until : '');
                         if (remainingText) {
@@ -428,7 +458,12 @@
                 function speakRestQueueNotice(meta) {
                     if (!isRestStatus(meta)) return;
                     if (!('speechSynthesis' in window)) return;
-                    var utter = new SpeechSynthesisUtterance('Loket sedang istirahat. silahkan ambil antrian dan menunggu.');
+                    var message = getUnavailableVoiceMessage(meta);
+                    if (!message) {
+                        message = 'Loket istirahat.';
+                    }
+                    message += ' silahkan ambil antrian dan menunggu.';
+                    var utter = new SpeechSynthesisUtterance(message);
                     utter.lang = 'id-ID';
                     utter.rate = 1;
                     utter.pitch = 1;
@@ -462,6 +497,9 @@
                         staff_status: partialMeta && partialMeta.staff_status ? String(partialMeta.staff_status).toUpperCase() : (existing.staff_status || 'INACTIVE'),
                         inactive_until: partialMeta && typeof partialMeta.inactive_until !== 'undefined' ? String(partialMeta.inactive_until || '') : (existing.inactive_until || ''),
                         inactive_announcement: partialMeta && typeof partialMeta.inactive_announcement !== 'undefined' ? String(partialMeta.inactive_announcement || '').trim() : (existing.inactive_announcement || ''),
+                        counter_code: partialMeta && typeof partialMeta.counter_code !== 'undefined' ? String(partialMeta.counter_code || '').trim() : (existing.counter_code || ''),
+                        counter_label: partialMeta && typeof partialMeta.counter_label !== 'undefined' ? String(partialMeta.counter_label || '').trim() : (existing.counter_label || ''),
+                        counter_id: String(counterId || (partialMeta && partialMeta.counter_id ? partialMeta.counter_id : existing.counter_id || '')).trim(),
                     };
                     counterMetaById[counterId] = merged;
                     applyCounterAvailability(counterId);
@@ -498,15 +536,17 @@
 
                 forms.forEach(function (form) {
                     var counterId = form.getAttribute('data-counter-id');
+                    var rawCode = form.getAttribute('data-counter-code');
                     if (counterId) {
                         formsByCounterId[counterId] = form;
                         setCounterMeta(counterId, {
                             staff_status: form.getAttribute('data-staff-status'),
                             inactive_until: form.getAttribute('data-inactive-until'),
                             inactive_announcement: form.getAttribute('data-inactive-announcement'),
+                            counter_code: rawCode,
+                            counter_label: form.getAttribute('data-counter-label'),
                         });
                     }
-                    var rawCode = form.getAttribute('data-counter-code');
                     var normalized = normalizeCode(rawCode);
                     if (normalized) {
                         if (!formsByCounterCode[normalized]) {
@@ -539,6 +579,8 @@
                             staff_status: button.getAttribute('data-staff-status'),
                             inactive_until: button.getAttribute('data-inactive-until'),
                             inactive_announcement: button.getAttribute('data-inactive-announcement'),
+                            counter_code: button.getAttribute('data-counter-code'),
+                            counter_label: button.getAttribute('data-counter-label'),
                         });
                     }
                     button.addEventListener('click', function () {
@@ -635,6 +677,8 @@
                             staff_status: counter.staff_status,
                             inactive_until: counter.inactive_until,
                             inactive_announcement: counter.inactive_announcement,
+                            counter_code: counter.counter_code,
+                            counter_label: counter.counter_label,
                         });
 
                         var form = formsByCounterId[counterId];
@@ -642,12 +686,24 @@
                             form.setAttribute('data-staff-status', String(counter.staff_status || ''));
                             form.setAttribute('data-inactive-until', String(counter.inactive_until || ''));
                             form.setAttribute('data-inactive-announcement', String(counter.inactive_announcement || ''));
+                            if (typeof counter.counter_code !== 'undefined') {
+                                form.setAttribute('data-counter-code', String(counter.counter_code || ''));
+                            }
+                            if (typeof counter.counter_label !== 'undefined') {
+                                form.setAttribute('data-counter-label', String(counter.counter_label || ''));
+                            }
                         }
                         var button = counterButtonsById[counterId];
                         if (button) {
                             button.setAttribute('data-staff-status', String(counter.staff_status || ''));
                             button.setAttribute('data-inactive-until', String(counter.inactive_until || ''));
                             button.setAttribute('data-inactive-announcement', String(counter.inactive_announcement || ''));
+                            if (typeof counter.counter_code !== 'undefined') {
+                                button.setAttribute('data-counter-code', String(counter.counter_code || ''));
+                            }
+                            if (typeof counter.counter_label !== 'undefined') {
+                                button.setAttribute('data-counter-label', String(counter.counter_label || ''));
+                            }
                         }
                     });
                 };
