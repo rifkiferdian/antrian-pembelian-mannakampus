@@ -35,8 +35,8 @@
                             },
                         },
                         boxShadow: {
-                            float: "0 18px 40px -24px rgba(15, 23, 42, 0.4)",
-                            soft: "0 12px 26px -20px rgba(15, 23, 42, 0.28)",
+                            lift: "0 20px 45px -28px rgba(15, 23, 42, 0.45)",
+                            warm: "0 18px 35px -28px rgba(245, 124, 0, 0.55)",
                         },
                     },
                 },
@@ -45,25 +45,29 @@
         <script src="{{ baseURL "/assets/js/tailwind.js" }}"></script>
 
         <style>
-            .queue-surface {
-                background: radial-gradient(circle at top, #f8fafc 0%, #eef2f7 48%, #e9edf4 100%);
+            .page-surface {
+                background: radial-gradient(circle at top, #fff9f3 0%, #f5f7fb 45%, #eef2f7 100%);
             }
-            .queue-card {
+            .panel {
                 background: #ffffff;
-                border: 1px solid #e5e7eb;
-                box-shadow: 0 18px 45px -30px rgba(15, 23, 42, 0.45);
+                border: 1px solid rgba(226, 232, 240, 0.9);
+                box-shadow: 0 20px 45px -30px rgba(15, 23, 42, 0.35);
             }
             .queue-call-card {
-                box-shadow: 0 26px 60px -40px rgba(249, 115, 22, 0.55);
-            }
-            .queue-status-card {
-                box-shadow: 0 22px 50px -36px rgba(249, 115, 22, 0.55);
+                background: linear-gradient(135deg, #ffffff 0%, #fff3e6 100%);
+                box-shadow: 0 26px 60px -40px rgba(249, 115, 22, 0.6);
             }
             .queue-video {
                 background: linear-gradient(145deg, #0b1324 0%, #0f172a 55%, #0b1324 100%);
             }
+            .queue-status-card {
+                box-shadow: 0 22px 50px -40px rgba(15, 23, 42, 0.35);
+            }
             .flash-text {
                 animation: flash 1.2s ease-in-out infinite;
+            }
+            .counter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(clamp(180px, 18vw, 230px), 1fr));
             }
             @keyframes flash {
                 0%,
@@ -77,102 +81,116 @@
         </style>
     </head>
 
-    <body class="queue-surface h-screen overflow-hidden font-body text-[clamp(18px,1.2vw,24px)] text-slate-900" data-store-id="{{ .StoreID }}">
-        <main id="queue-layout" class="mx-auto flex h-full min-h-0 w-full flex-col px-[clamp(24px,3.5vw,64px)] pb-[clamp(20px,3vh,48px)] pt-[clamp(20px,3vh,48px)]">
-            {{ if .Store }}
-                <div class="flex justify-end">
-                    <div class="inline-flex items-center gap-4 rounded-full border border-slate-200 bg-white px-7 py-2.5 text-[clamp(14px,1.1vw,18px)] font-semibold uppercase tracking-[0.35em] text-slate-400">
+    <body class="page-surface h-screen overflow-hidden font-body text-[clamp(14px,1vw,18px)] text-slate-900" data-store-id="{{ .StoreID }}">
+        <main id="queue-layout" class="mx-auto flex h-full w-full flex-col px-[clamp(16px,3vw,48px)] py-[clamp(16px,3vh,40px)]">
+            <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-[22px] bg-white shadow-warm">
+                        <span class="text-orange-500">
+                            <svg viewBox="0 0 24 24" class="h-8 w-8" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    <div>
+                        <h1 class="text-[clamp(22px,2.2vw,32px)] font-extrabold uppercase tracking-[0.2em] text-slate-900">Sistem Antrean Pembelian</h1>
+                        <p class="mt-1 text-[clamp(12px,1vw,16px)] text-slate-500">Pantau panggilan antrian secara real-time.</p>
+                    </div>
+                </div>
+                {{ if .Store }}
+                    <div class="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-6 py-2 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
                         {{ .Store.StoreName }} - {{ .Date }}
                     </div>
-                </div>
-            {{ end }}
+                {{ end }}
+            </header>
 
-            <section class="mt-[clamp(16px,2.4vh,32px)] grid gap-[clamp(16px,2.4vh,40px)] lg:grid-cols-[1.25fr_1fr]">
-                <div class="queue-card queue-call-card overflow-hidden rounded-[28px]">
-                    <div class="flex items-center justify-between bg-orange-500 px-[clamp(24px,3vw,40px)] py-[clamp(14px,2.2vh,24px)] text-white">
-                        <span class="text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
-                        <button
-                            id="speaker-test-btn"
-                            type="button"
-                            class="flex h-[clamp(44px,5vh,56px)] w-[clamp(44px,5vh,56px)] items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
-                            title="Tes speaker"
-                            aria-label="Tes speaker"
-                        >
-                            <i class="bx bx-volume-full"></i>
-                        </button>
-                    </div>
-                    <div class="flex min-h-[clamp(260px,42vh,520px)] flex-col items-center justify-center px-[clamp(20px,3vw,40px)] py-[clamp(20px,3vh,44px)] text-center sm:px-[clamp(24px,3.4vw,56px)]">
-                        <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
-                            <p id="current-ticket" class="text-[clamp(76px,9vw,170px)] font-extrabold leading-none tracking-tight text-slate-900">
-                                {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
-                            </p>
-                            <div
-                                id="current-counter"
-                                class="mt-6 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-9 py-3.5 text-[clamp(16px,1.4vw,22px)] font-semibold uppercase tracking-[0.35em] text-white"
-                                data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
+            <section class="mt-6 flex min-h-0 flex-1 flex-col gap-6">
+                <div class="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
+                    <div class="panel queue-call-card overflow-hidden rounded-[28px]">
+                        <div class="flex items-center justify-between bg-orange-500 px-[clamp(18px,2.4vw,30px)] py-[clamp(12px,2vh,18px)] text-white">
+                            <span class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
+                            <button
+                                id="speaker-test-btn"
+                                type="button"
+                                class="flex h-[clamp(42px,4.8vh,54px)] w-[clamp(42px,4.8vh,54px)] items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="Tes speaker"
+                                aria-label="Tes speaker"
                             >
-                                <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
-                                <span id="current-counter-number" class="text-[clamp(22px,2.2vw,32px)] font-black">-</span>
-                            </div>
-                            <p id="current-category" class="mt-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CounterName }}block{{ else }}hidden{{ end }}">
-                                {{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ end }}
-                            </p>
+                                <i class="bx bx-volume-full"></i>
+                            </button>
                         </div>
-                        <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
-                            <p class="text-[clamp(30px,2.8vw,40px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
-                            <p class="mt-4 text-[clamp(14px,1.3vw,20px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
-                        </div>
-                        <div class="flash-text mt-[clamp(16px,3vh,32px)] w-full rounded-2xl bg-orange-50/70 px-8 py-5 text-[clamp(14px,1.2vw,20px)] font-bold uppercase italic tracking-[0.35em] text-orange-600">
-                            Silahkan menuju loket terkait !
-                        </div>
-                    </div>
-                </div>
-
-                <div class="queue-card queue-video relative flex flex-col overflow-hidden rounded-[28px] p-7 text-white">
-                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,transparent_55%)] opacity-60"></div>
-                    <div class="relative z-10 flex flex-1 flex-col gap-5">
-                        <p class="text-[clamp(14px,1.1vw,18px)] font-semibold uppercase tracking-[0.4em] text-white/60">Company Profile Video</p>
-                        <div class="relative w-full overflow-hidden rounded-[28px] border border-white/10 bg-black/40">
-                            <div class="aspect-video">
-                                <iframe
-                                    class="h-full w-full"
-                                    src="https://www.youtube-nocookie.com/embed/s3L0_ez0Dg4?si=pE2vl5_8EO0iXQi6"
-                                    title="Company Profile Video"
-                                    frameborder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                    allowfullscreen
-                                ></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="mt-[clamp(16px,2.4vh,32px)]">
-                <div class="queue-card queue-status-card rounded-[26px] px-[clamp(20px,3vw,32px)] py-[clamp(14px,2.4vh,28px)]">
-                    <div class="flex items-center gap-5 text-[clamp(14px,1.2vw,20px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
-                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-orange-500">
-                            <i class="bx bxs-grid-alt text-2xl"></i>
-                        </span>
-                        Status Loket
-                    </div>
-                    <div id="queue-counters" class="mt-[clamp(16px,2.4vh,28px)] grid gap-[clamp(12px,2.2vh,28px)] sm:grid-cols-2 lg:grid-cols-4">
-                        {{ if .Counters }}
-                            {{ range .Counters }}
-                                <div class="rounded-[22px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-[clamp(16px,2.6vw,24px)] py-[clamp(16px,2.6vh,36px)] text-center shadow-soft">
-                                    <p class="text-[clamp(14px,1.1vw,18px)] font-extrabold uppercase tracking-[0.35em] text-orange-500">{{ .CounterLabel }}</p>
-                                    <p class="mt-3 text-[clamp(18px,1.6vw,28px)] font-black uppercase tracking-[0.2em] text-slate-600">{{ .CategoryName }}</p>
-                                    <p class="mt-6 text-[clamp(32px,3.4vw,64px)] font-extrabold text-slate-900">{{ .TicketNo }}</p>
-                                    <span class="mt-6 inline-flex items-center justify-center rounded-full px-6 py-2 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.25em] {{ .StatusClass }}">
-                                        {{ .StatusLabel }}
-                                    </span>
+                        <div class="flex min-h-[clamp(190px,26vh,340px)] flex-col items-center justify-center px-[clamp(16px,2.2vw,28px)] py-[clamp(14px,2.2vh,26px)] text-center">
+                            <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
+                                <p id="current-ticket" class="text-[clamp(56px,6.5vw,120px)] font-extrabold leading-none tracking-tight text-slate-900">
+                                    {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
+                                </p>
+                                <div
+                                    id="current-counter"
+                                    class="mt-4 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-7 py-2.5 text-[clamp(12px,1.1vw,16px)] font-semibold uppercase tracking-[0.35em] text-white"
+                                    data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
+                                >
+                                    <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
+                                    <span id="current-counter-number" class="text-[clamp(18px,1.8vw,26px)] font-black">-</span>
                                 </div>
-                            {{ end }}
-                        {{ else }}
-                            <div class="col-span-full rounded-2xl border border-slate-200 bg-white p-7 text-center text-[clamp(14px,1.1vw,20px)] text-slate-500">
-                                Belum ada loket aktif untuk store ini.
                             </div>
-                        {{ end }}
+                            <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
+                                <p class="text-[clamp(22px,2vw,30px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
+                                <p class="mt-2 text-[clamp(11px,0.95vw,14px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
+                            </div>
+                            <div class="flash-text mt-[clamp(10px,2vh,20px)] w-full rounded-2xl bg-orange-50/70 px-5 py-3 text-[clamp(11px,0.95vw,14px)] font-bold uppercase italic tracking-[0.35em] text-orange-600">
+                                Silahkan menuju loket terkait !
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel queue-video relative overflow-hidden rounded-[28px] p-5 text-white">
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,#1f2937_0%,transparent_55%)] opacity-60"></div>
+                        <div class="relative z-10 flex h-full flex-col gap-3">
+                            <p class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.35em] text-white/70">Company Profile</p>
+                            <div class="relative flex min-h-[clamp(190px,26vh,340px)] flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                                <video
+                                    class="h-full w-full object-cover"
+                                    src="{{ baseURL "/assets/video/Video-Profile-Manna-Kampus.mp4" }}"
+                                    autoplay
+                                    loop
+                                    muted
+                                    playsinline
+                                    controls
+                                >
+                                    Browser Anda tidak mendukung pemutaran video.
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-1">
+                    <div class="panel queue-status-card flex w-full flex-col rounded-[26px] px-[clamp(16px,2.2vw,24px)] py-[clamp(12px,2.2vh,22px)]">
+                        <div class="flex items-center gap-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
+                            <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-orange-500">
+                                <i class="bx bxs-grid-alt text-2xl"></i>
+                            </span>
+                            Status Loket
+                        </div>
+                        <div class="mt-4">
+                            <div id="queue-counters" class="counter-grid grid gap-4">
+                                {{ if .Counters }}
+                                    {{ range .Counters }}
+                                        <div class="rounded-[18px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-4 py-4 text-center shadow-lift {{ if .IsCurrent }}ring-2 ring-orange-300{{ end }}">
+                                            <p class="text-[clamp(11px,0.95vw,14px)] font-extrabold uppercase tracking-[0.35em] text-orange-500">{{ .CounterLabel }}</p>
+                                            <p class="mt-2 text-[clamp(12px,1vw,16px)] font-black uppercase tracking-[0.2em] text-slate-600">{{ .CategoryName }}</p>
+                                            <p class="mt-3 text-[clamp(24px,2.6vw,44px)] font-extrabold text-slate-900">{{ .TicketNo }}</p>
+                                            <span class="mt-3 inline-flex items-center justify-center rounded-full px-4 py-1.5 text-[clamp(9px,0.85vw,12px)] font-semibold uppercase tracking-[0.25em] {{ .StatusClass }}">
+                                                {{ .StatusLabel }}
+                                            </span>
+                                        </div>
+                                    {{ end }}
+                                {{ else }}
+                                    <div class="col-span-full rounded-2xl border border-slate-200 bg-white p-6 text-center text-[clamp(12px,1vw,16px)] text-slate-500">
+                                        Belum ada loket aktif untuk store ini.
+                                    </div>
+                                {{ end }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -224,7 +242,6 @@
                 var counterEl = document.getElementById('current-counter');
                 var counterWordEl = document.getElementById('current-counter-word');
                 var counterNumberEl = document.getElementById('current-counter-number');
-                var categoryEl = document.getElementById('current-category');
                 var callContentEl = document.getElementById('current-call-content');
                 var callEmptyEl = document.getElementById('current-call-empty');
                 var countersGrid = document.getElementById('queue-counters');
@@ -258,15 +275,6 @@
 
                     if (ticketEl) ticketEl.textContent = hasCall ? ticketNo : '-';
                     renderCounterLabel(counterDisplay);
-                    if (categoryEl) {
-                        if (counterName) {
-                            categoryEl.textContent = counterName;
-                            categoryEl.classList.remove('hidden');
-                        } else {
-                            categoryEl.textContent = '';
-                            categoryEl.classList.add('hidden');
-                        }
-                    }
                     if (callContentEl && callEmptyEl) {
                         if (hasCall) {
                             callContentEl.classList.remove('hidden');
@@ -280,22 +288,23 @@
 
                 function buildCounterCard(counter) {
                     var card = document.createElement('div');
-                    card.className = 'rounded-[22px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-6 py-9 text-center shadow-soft';
+                    var highlight = counter && counter.is_current ? ' ring-2 ring-orange-300' : '';
+                    card.className = 'rounded-[20px] border border-slate-200 bg-[rgb(246_251_255_/_70%)] px-5 py-5 text-center shadow-lift' + highlight;
 
                     var label = document.createElement('p');
-                    label.className = 'text-[clamp(14px,1.1vw,18px)] font-extrabold uppercase tracking-[0.35em] text-orange-500';
+                    label.className = 'text-[clamp(12px,1vw,16px)] font-extrabold uppercase tracking-[0.35em] text-orange-500';
                     label.textContent = counter.counter_label || 'Loket -';
 
                     var category = document.createElement('p');
-                    category.className = 'mt-3 text-[clamp(18px,1.6vw,28px)] font-black uppercase tracking-[0.2em] text-slate-600';
+                    category.className = 'mt-2 text-[clamp(14px,1.2vw,20px)] font-black uppercase tracking-[0.2em] text-slate-600';
                     category.textContent = counter.category_name || '-';
 
                     var ticket = document.createElement('p');
-                    ticket.className = 'mt-6 text-[clamp(40px,3.8vw,64px)] font-extrabold text-slate-900';
+                    ticket.className = 'mt-4 text-[clamp(28px,3vw,52px)] font-extrabold text-slate-900';
                     ticket.textContent = counter.ticket_no || '-';
 
                     var status = document.createElement('span');
-                    status.className = 'mt-6 inline-flex items-center justify-center rounded-full px-6 py-2 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.25em] ' + (counter.status_class || 'bg-slate-100 text-slate-400');
+                    status.className = 'mt-4 inline-flex items-center justify-center rounded-full px-5 py-2 text-[clamp(10px,0.9vw,14px)] font-semibold uppercase tracking-[0.25em] ' + (counter.status_class || 'bg-slate-100 text-slate-400');
                     status.textContent = counter.status_label || 'BELUM ADA';
 
                     card.appendChild(label);
@@ -310,7 +319,7 @@
                     countersGrid.innerHTML = '';
                     if (!counters || !counters.length) {
                         var empty = document.createElement('div');
-                        empty.className = 'col-span-full rounded-2xl border border-slate-200 bg-white p-7 text-center text-[clamp(14px,1.1vw,20px)] text-slate-500';
+                        empty.className = 'col-span-full rounded-2xl border border-slate-200 bg-white p-6 text-center text-[clamp(12px,1vw,16px)] text-slate-500';
                         empty.textContent = 'Belum ada loket aktif untuk store ini.';
                         countersGrid.appendChild(empty);
                         return;

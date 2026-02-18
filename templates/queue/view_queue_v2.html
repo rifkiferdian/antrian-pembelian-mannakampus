@@ -95,7 +95,7 @@
     </head>
 
     <body class="page-surface h-screen overflow-hidden font-body text-[clamp(14px,1vw,18px)] text-slate-900" data-store-id="{{ .StoreID }}">
-        <main id="queue-layout" class="mx-auto flex h-full w-full flex-col px-[clamp(16px,3vw,48px)] py-[clamp(16px,3vh,40px)]">
+        <main id="queue-layout" class="mx-auto flex h-full w-full flex-col px-0 py-[clamp(8px,1.5vh,20px)]">
             <header class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center gap-4">
                     <div class="flex h-14 w-14 items-center justify-center rounded-[22px] bg-white shadow-warm">
@@ -117,8 +117,8 @@
                 {{ end }}
             </header>
 
-            <section class="mt-6 grid min-h-0 flex-1 gap-6 lg:grid-cols-[0.9fr_1.4fr]">
-                <aside class="panel flex min-h-0 flex-col overflow-hidden rounded-[28px]">
+            <section class="mt-6 grid gap-6 lg:grid-cols-[0.78fr_1.62fr]">
+                <aside class="panel flex w-full flex-col overflow-hidden rounded-[28px]">
                     <div class="ticket-header flex items-center justify-between px-[clamp(18px,2.6vw,32px)] py-[clamp(14px,2.4vh,22px)] text-white">
                         <div>
                             <p class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em] text-white/70">Ambil Tiket</p>
@@ -128,40 +128,8 @@
                             <i class="bx bx-receipt"></i>
                         </span>
                     </div>
-                    <div class="flex min-h-0 flex-1 flex-col gap-4 px-[clamp(18px,2.6vw,32px)] py-[clamp(18px,2.6vh,28px)]">
-                        <div class="rounded-2xl border border-orange-100 bg-orange-50/70 px-4 py-3">
-                            <div class="flex items-center justify-between gap-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-orange-600">
-                                <span>Ketik nomor loket di keyboard untuk cetak tiket</span>
-                                <i class="bx bx-right-arrow-alt text-2xl"></i>
-                            </div>
-                            {{ if .GuestCounters }}
-                                <div class="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
-                                    {{ range .GuestCounters }}
-                                        <button
-                                            type="button"
-                                            class="flex flex-col items-center justify-center rounded-2xl border border-orange-100 bg-white px-3 py-3 text-center shadow-lift transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 {{ if eq .StaffStatus "ACTIVE" }}hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm{{ else }}cursor-not-allowed opacity-70{{ end }}"
-                                            data-counter-btn="true"
-                                            data-counter-id="{{ .CounterID }}"
-                                            data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
-                                            data-staff-status="{{ .StaffStatus }}"
-                                            data-inactive-until="{{ .InactiveUntil }}"
-                                            data-inactive-announcement="{{ .InactiveAnnouncement }}"
-                                        >
-                                            <span class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Loket</span>
-                                            <span class="mt-1 text-[clamp(18px,2.1vw,26px)] font-extrabold text-orange-500">
-                                                {{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}
-                                            </span>
-                                        </button>
-                                    {{ end }}
-                                </div>
-                            {{ else }}
-                                <div class="mt-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
-                                    Data loket belum tersedia.
-                                </div>
-                            {{ end }}
-                        </div>
-
-                        <div class="scroll-slim min-h-0 flex-1 overflow-y-auto pr-1">
+                    <div class="flex flex-col gap-4 px-[clamp(18px,2.6vw,32px)] py-[clamp(18px,2.6vh,28px)]">
+                        <div class="scroll-slim pr-1">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 {{ if .GuestCounters }}
                                     {{ range .GuestCounters }}
@@ -182,35 +150,21 @@
                                                 class="panel h-full w-full rounded-[22px] border border-slate-200 px-4 py-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 {{ if eq .StaffStatus "ACTIVE" }}hover:-translate-y-1 hover:border-brand-200 hover:shadow-warm{{ else }}cursor-not-allowed opacity-80{{ end }}"
                                                 {{ if ne .StaffStatus "ACTIVE" }}disabled{{ end }}
                                             >
-                                                <div class="flex items-center justify-between">
-                                                    <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500">
-                                                        <!-- {{ .IndexLabel }} -->
-                                                    </span>
-                                                    <span class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                                                        Menunggu <span class="ml-1 text-orange-500" data-waiting-counter-id="{{ .CounterID }}">{{ .WaitingCount }}</span>
-                                                    </span>
-                                                </div>
-                                                <div class="mt-4 flex items-start gap-4">
-                                                    <span class="icon-soft flex h-14 w-14 items-center justify-center rounded-2xl text-orange-500">
-                                                        {{ if eq .Icon "fashion" }}
-                                                            <i class="bx bxs-t-shirt text-3xl"></i>
-                                                        {{ else if eq .Icon "toiletries" }}
-                                                            <i class="bx bx-bath text-3xl"></i>
-                                                        {{ else if eq .Icon "food" }}
-                                                            <i class="bx bx-bowl-hot text-3xl"></i>
-                                                        {{ else }}
-                                                            <i class="bx bx-grid-alt text-3xl"></i>
-                                                        {{ end }}
+                                                <div class="flex items-start gap-4">
+                                                    <span class="icon-soft flex h-20 w-20 flex-col items-center justify-center rounded-2xl">
+                                                        <span class="text-[11px] font-semibold uppercase tracking-[0.24em] text-black">Loket</span>
+                                                        <span class="mt-0.5 text-[clamp(26px,2.8vw,36px)] font-extrabold text-orange-500">
+                                                            {{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}
+                                                        </span>
                                                     </span>
                                                     <div class="flex-1">
-                                                        <p class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.35em] text-slate-400">{{ .IndexLabel }}</p>
+                                                        <!-- <p class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.35em] text-slate-400">{{ .IndexLabel }}</p> -->
                                                         <h3 class="mt-1 text-[clamp(18px,1.8vw,24px)] font-bold text-slate-900">{{ .CategoryName }}</h3>
                                                         <div class="mt-3 flex flex-wrap items-center gap-2">
-                                                            <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Staff</span>
                                                             {{ if .StaffNames }}
-                                                                <div class="flex flex-wrap gap-1">
+                                                                <div class="flex flex-wrap gap-2">
                                                                     {{ range .StaffNames }}
-                                                                        <span class="rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-600">{{ . }}</span>
+                                                                        <span class="rounded-full bg-brand-50 px-3.5 py-2 text-[clamp(14px,1.2vw,18px)] font-semibold text-brand-600">{{ . }}</span>
                                                                     {{ end }}
                                                                 </div>
                                                             {{ else }}
@@ -218,6 +172,14 @@
                                                             {{ end }}
                                                         </div>
                                                     </div>
+                                                </div>
+                                                <div class="mt-4">
+                                                    <hr class="border-slate-200" />
+                                                </div>
+                                                <div class="mt-3 flex justify-end">
+                                                    <span class="text-[clamp(12px,1vw,15px)] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                                        Menunggu <span class="ml-1 text-[clamp(16px,1.4vw,22px)] font-extrabold leading-none text-orange-500" data-waiting-counter-id="{{ .CounterID }}">{{ .WaitingCount }}</span>
+                                                    </span>
                                                 </div>
                                             </button>
                                         </form>
@@ -232,48 +194,51 @@
                     </div>
                 </aside>
 
-                <section class="flex min-h-0 flex-col gap-6">
-                    <div class="panel queue-call-card overflow-hidden rounded-[28px]">
-                        <div class="flex items-center justify-between bg-orange-500 px-[clamp(18px,2.4vw,30px)] py-[clamp(12px,2vh,18px)] text-white">
-                            <span class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
-                            <button
-                                id="speaker-test-btn"
-                                type="button"
-                                class="flex h-[clamp(42px,4.8vh,54px)] w-[clamp(42px,4.8vh,54px)] items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
-                                title="Tes speaker"
-                                aria-label="Tes speaker"
-                            >
-                                <i class="bx bx-volume-full"></i>
-                            </button>
-                        </div>
-                        <div class="flex min-h-[clamp(190px,26vh,340px)] flex-col items-center justify-center px-[clamp(16px,2.2vw,28px)] py-[clamp(14px,2.2vh,26px)] text-center">
-                            <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
-                                <p id="current-ticket" class="text-[clamp(56px,6.5vw,120px)] font-extrabold leading-none tracking-tight text-slate-900">
-                                    {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
-                                </p>
-                                <div
-                                    id="current-counter"
-                                    class="mt-4 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-7 py-2.5 text-[clamp(12px,1.1vw,16px)] font-semibold uppercase tracking-[0.35em] text-white"
-                                    data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
+                <section class="flex w-full flex-col gap-6">
+                    <div>
+                        <div class="panel queue-call-card overflow-hidden rounded-[28px]">
+                            <div class="flex items-center justify-between bg-orange-500 px-[clamp(18px,2.4vw,30px)] py-[clamp(12px,2vh,18px)] text-white">
+                                <span class="text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.4em]">Memanggil</span>
+                                <button
+                                    id="speaker-test-btn"
+                                    type="button"
+                                    class="flex h-[clamp(42px,4.8vh,54px)] w-[clamp(42px,4.8vh,54px)] items-center justify-center rounded-full bg-white/25 text-3xl transition hover:bg-white/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    title="Tes speaker"
+                                    aria-label="Tes speaker"
                                 >
-                                    <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
-                                    <span id="current-counter-number" class="text-[clamp(18px,1.8vw,26px)] font-black">-</span>
+                                    <i class="bx bx-volume-full"></i>
+                                </button>
+                            </div>
+                            <div class="flex min-h-[clamp(190px,26vh,340px)] flex-col items-center justify-center px-[clamp(16px,2.2vw,28px)] py-[clamp(14px,2.2vh,26px)] text-center">
+                                <div id="current-call-content" class="{{ if .CurrentCall.TicketNo }}block{{ else }}hidden{{ end }}">
+                                    <p id="current-ticket" class="text-[clamp(56px,6.5vw,120px)] font-extrabold leading-none tracking-tight text-slate-900">
+                                        {{ if .CurrentCall.TicketNo }}{{ .CurrentCall.TicketNo }}{{ else }}-{{ end }}
+                                    </p>
+                                    <div
+                                        id="current-counter"
+                                        class="mt-4 inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-900 px-7 py-2.5 text-[clamp(12px,1.1vw,16px)] font-semibold uppercase tracking-[0.35em] text-white"
+                                        data-counter-label="{{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ else }}{{ .CurrentCall.CounterLabel }}{{ end }}"
+                                    >
+                                        <span id="current-counter-word" class="font-black text-orange-500">Loket</span>
+                                        <span id="current-counter-number" class="text-[clamp(18px,1.8vw,26px)] font-black">-</span>
+                                    </div>
+                                    <!-- <p id="current-category" class="mt-3 text-[clamp(11px,0.95vw,14px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CounterName }}block{{ else }}hidden{{ end }}">
+                                        {{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ end }}
+                                    </p> -->
                                 </div>
-                                <!-- <p id="current-category" class="mt-3 text-[clamp(11px,0.95vw,14px)] font-semibold uppercase tracking-[0.35em] text-slate-400 {{ if .CurrentCall.CounterName }}block{{ else }}hidden{{ end }}">
-                                    {{ if .CurrentCall.CounterName }}{{ .CurrentCall.CounterName }}{{ end }}
-                                </p> -->
-                            </div>
-                            <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
-                                <p class="text-[clamp(22px,2vw,30px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
-                                <p class="mt-2 text-[clamp(11px,0.95vw,14px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
-                            </div>
-                            <div class="flash-text mt-[clamp(10px,2vh,20px)] w-full rounded-2xl bg-orange-50/70 px-5 py-3 text-[clamp(11px,0.95vw,14px)] font-bold uppercase italic tracking-[0.35em] text-orange-600">
-                                Silahkan menuju loket terkait !
+                                <div id="current-call-empty" class="{{ if .CurrentCall.TicketNo }}hidden{{ else }}block{{ end }}">
+                                    <p class="text-[clamp(22px,2vw,30px)] font-semibold text-slate-600">Belum Ada Panggilan</p>
+                                    <p class="mt-2 text-[clamp(11px,0.95vw,14px)] uppercase tracking-[0.3em] text-slate-400">Silakan Tunggu</p>
+                                </div>
+                                <div class="flash-text mt-[clamp(10px,2vh,20px)] w-full rounded-2xl bg-orange-50/70 px-5 py-3 text-[clamp(11px,0.95vw,14px)] font-bold uppercase italic tracking-[0.35em] text-orange-600">
+                                    Silahkan menuju loket terkait !
+                                </div>
                             </div>
                         </div>
+
                     </div>
 
-                    <div class="flex min-h-0 flex-1">
+                    <div class="flex">
                         <div class="panel queue-status-card flex w-full flex-col rounded-[26px] px-[clamp(16px,2.2vw,24px)] py-[clamp(12px,2.2vh,22px)]">
                             <div class="flex items-center gap-4 text-[clamp(12px,1vw,16px)] font-semibold uppercase tracking-[0.3em] text-slate-500">
                                 <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-orange-500">
@@ -325,7 +290,7 @@
                         return;
                     }
 
-                    var safePadding = 12;
+                    var safePadding = 16;
                     var availableHeight = Math.max(0, viewportHeight - safePadding);
                     var scale = availableHeight / contentHeight;
                     mainEl.style.transformOrigin = 'top center';
@@ -334,10 +299,16 @@
                     mainEl.style.marginRight = 'auto';
                 }
 
+                window.fitQueueLayoutToViewport = fitToViewport;
+
                 window.addEventListener('resize', function () {
                     window.requestAnimationFrame(fitToViewport);
                 });
-                window.addEventListener('load', fitToViewport);
+                window.addEventListener('load', function () {
+                    fitToViewport();
+                    setTimeout(fitToViewport, 120);
+                    setTimeout(fitToViewport, 500);
+                });
                 if (document.fonts && document.fonts.ready) {
                     document.fonts.ready.then(fitToViewport);
                 }
@@ -852,6 +823,9 @@
                         renderCurrentCall(payload.current_call || {});
                         renderCounters(payload.counters || []);
                         renderGuestCounters(payload.guest_counters || []);
+                        if (typeof window.fitQueueLayoutToViewport === 'function') {
+                            window.requestAnimationFrame(window.fitQueueLayoutToViewport);
+                        }
 
                         if (payload.action === 'call' || payload.action === 'recall') {
                             speak(payload.current_call || {});
