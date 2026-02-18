@@ -84,7 +84,7 @@ func main() {
 	// Determine port (fallback to 8080 if APP_PORT is not set)
 	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "8080"
+		port = "8089"
 	}
 
 	// ===============================
