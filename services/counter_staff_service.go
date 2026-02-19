@@ -101,7 +101,7 @@ func (s *CounterStaffService) UpdateStatusByCounterAndUser(input models.CounterS
 		if !input.InactiveUntil.After(*input.InactiveStartedAt) {
 			return models.CounterStaffStatusDetail{}, errors.New("inactive_until harus setelah inactive_started_at")
 		}
-		input.InactiveAnnouncement = strings.TrimSpace(input.InactiveAnnouncement)
+		input.InactiveAnnouncement = normalizeInactiveAnnouncement(input.InactiveAnnouncement)
 		if input.InactiveAnnouncement == "" {
 			return models.CounterStaffStatusDetail{}, errors.New("pengumuman non-aktif wajib diisi")
 		}
@@ -133,6 +133,20 @@ func (s *CounterStaffService) UpdateStatusByCounterAndUser(input models.CounterS
 	return detail, nil
 }
 
+func normalizeInactiveAnnouncement(value string) string {
+	normalized := strings.TrimSpace(value)
+	if normalized == "" {
+		return ""
+	}
+
+	lastChar := normalized[len(normalized)-1]
+	switch lastChar {
+	case '.', '!', '?':
+		return normalized
+	default:
+		return normalized + "."
+	}
+}
 func normalizeCounterStaffStatus(status string) (string, error) {
 	val := strings.TrimSpace(strings.ToUpper(status))
 
