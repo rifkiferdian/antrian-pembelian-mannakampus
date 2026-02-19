@@ -48,6 +48,9 @@
             .guest-surface {
                 background: #f7f4f1;
             }
+            .guest-grid {
+                grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 20vw, 280px), 1fr));
+            }
             .guest-card {
                 background: #ffffff;
                 border: 1px solid rgba(226, 232, 240, 0.7);
@@ -59,51 +62,71 @@
         </style>
     </head>
 
-    <body class="min-h-screen bg-white font-body text-slate-900">
-        <div class="guest-surface min-h-screen">
-            <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-12 pt-10 sm:px-6 lg:px-8">
-                <header class="flex flex-col items-center text-center">
-                    <div class="flex h-20 w-20 items-center justify-center rounded-[28px] bg-white shadow-soft">
-                        <span class="text-orange-500">
-                            <svg viewBox="0 0 24 24" class="h-10 w-10" fill="currentColor" aria-hidden="true">
-                                <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
-                            </svg>
-                        </span>
-                    </div>
-                    <h1 class="mt-6 text-2xl font-extrabold tracking-wide text-slate-900 sm:text-3xl">SISTEM ANTREAN PEMBELIAN</h1>
-                    <p class="mt-2 text-sm text-slate-500">Silakan pilih kategori produk Anda</p>
-                    {{ if .Store }}
-                        <div class="mt-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                            {{ .Store.StoreName }} - {{ .Date }}
+    <body class="h-screen overflow-hidden bg-white font-body text-slate-900" data-store-id="{{ .StoreID }}">
+        <div class="guest-surface h-full overflow-hidden">
+            <main id="guest-layout" class="mx-auto flex h-full w-full max-w-[1780px] flex-col px-[clamp(12px,2vw,28px)] pb-[clamp(10px,2vh,24px)] pt-[clamp(10px,2vh,22px)]">
+                <header class="flex flex-wrap items-start justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex h-20 w-20 items-center justify-center rounded-[28px] bg-white shadow-soft">
+                            <span class="text-orange-500">
+                                <svg viewBox="0 0 24 24" class="h-10 w-10" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 2l2.9 6.6L22 12l-7.1 3.4L12 22l-2.9-6.6L2 12l7.1-3.4L12 2z"></path>
+                                </svg>
+                            </span>
                         </div>
-                    {{ end }}
+                        <div>
+                            <h1 class="text-[clamp(20px,2vw,34px)] font-extrabold tracking-wide text-slate-900">SISTEM ANTREAN PEMBELIAN</h1>
+                            <p class="mt-1 text-sm text-slate-500">Silakan pilih kategori produk Anda</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button
+                            id="speaker-test-btn"
+                            type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-soft transition hover:border-brand-200 hover:text-orange-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Tes speaker"
+                            aria-label="Tes speaker"
+                        >
+                            <i class="bx bx-volume-full text-2xl"></i>
+                        </button>
+                        {{ if .Store }}
+                            <div class="inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                                {{ .Store.StoreName }} - {{ .Date }}
+                            </div>
+                        {{ end }}
+                    </div>
                 </header>
 
-                <section class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <section class="guest-grid mt-6 grid gap-4">
                     {{ if .Counters }}
                         {{ range .Counters }}
-                            <form action="/guest/ticket" method="post" class="group">
+                            <form
+                                action="/guest/ticket"
+                                method="post"
+                                class="group"
+                                data-print-window="true"
+                                data-counter-id="{{ .CounterID }}"
+                                data-counter-code="{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                data-counter-label="Loket {{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}"
+                                data-staff-status="{{ .StaffStatus }}"
+                                data-inactive-until="{{ .InactiveUntil }}"
+                                data-inactive-announcement="{{ .InactiveAnnouncement }}"
+                            >
                                 <input type="hidden" name="counter_id" value="{{ .CounterID }}" />
-                                <button type="submit" class="guest-card flex h-full w-full flex-col items-center rounded-[28px] px-6 py-7 text-center transition hover:-translate-y-1 hover:border-brand-200 hover:shadow-soft">
-                                    <span class="mb-4 rounded-full bg-slate-100 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-500">
-                                        <b>{{ .IndexLabel }}</b>
-                                    </span>
-                                    <span class="icon-soft flex h-20 w-20 items-center justify-center rounded-2xl text-orange-500">
-                                        {{ if eq .Icon "fashion" }}
-                                            <i class="bx bxs-t-shirt text-4xl"></i>
-                                        {{ else if eq .Icon "toiletries" }}
-                                            <i class="bx bx-bath text-4xl"></i>
-                                        {{ else if eq .Icon "food" }}
-                                            <i class="bx bx-bowl-hot text-4xl"></i>
-                                        {{ else }}
-                                            <i class="bx bx-grid-alt text-4xl"></i>
-                                        {{ end }}
+                                <button
+                                    type="submit"
+                                    class="guest-card flex h-full w-full flex-col items-center rounded-[28px] px-6 py-7 text-center transition {{ if or (eq .StaffStatus "ACTIVE") (eq .StaffStatus "REST") }}hover:-translate-y-1 hover:border-brand-200 hover:shadow-soft{{ else }}cursor-not-allowed opacity-80{{ end }}"
+                                    {{ if and (ne .StaffStatus "ACTIVE") (ne .StaffStatus "REST") }}disabled{{ end }}
+                                >
+                                    <span class="icon-soft flex h-20 w-20 flex-col items-center justify-center rounded-2xl">
+                                        <span class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Loket</span>
+                                        <span class="mt-0.5 text-[clamp(26px,2.6vw,40px)] font-extrabold leading-none text-orange-500">{{ if .CounterCode }}{{ .CounterCode }}{{ else }}{{ .CounterID }}{{ end }}</span>
                                     </span>
                                     <h3 class="mt-5 text-lg font-bold uppercase text-slate-900">{{ .CategoryName }}</h3>
                                     <div class="mt-2 flex flex-col items-center gap-2">
                                         <span class="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Staff</span>
                                         {{ if .StaffNames }}
-                                            <ul class="flex flex-col items-center gap-1 text-xs font-semibold text-brand-600">
+                                            <ul class="flex flex-col items-center gap-1 text-[clamp(13px,1vw,16px)] font-semibold text-brand-600">
                                                 {{ range .StaffNames }}
                                                     <li>{{ . }}</li>
                                                 {{ end }}
@@ -115,12 +138,9 @@
 
                                     <div class="mt-6 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Menunggu</div>
                                     <div class="mt-2 flex items-baseline gap-1">
-                                        <span class="text-3xl font-extrabold text-orange-500">{{ .WaitingCount }}</span>
+                                        <span class="text-3xl font-extrabold text-orange-500" data-waiting-counter-id="{{ .CounterID }}">{{ .WaitingCount }}</span>
                                         <span class="text-xs text-slate-400">Orang</span>
                                     </div>
-                                    <span class="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-xs font-semibold text-brand-600">
-                                        Ambil Antrian
-                                    </span>
                                 </button>
                             </form>
                         {{ end }}
@@ -131,9 +151,9 @@
                     {{ end }}
                 </section>
 
-                <footer class="mt-auto pt-10 text-center text-xs text-slate-400">
+                <footer class="mt-auto pt-5 text-center text-xs text-slate-400">
                     <div class="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-                        <span>Jam Operasional: 08:00 - 17:00</span>
+                        <span>Jam Operasional: 08:30 - 15:00</span>
                         <span class="hidden sm:inline">-</span>
                         <span>Butuh bantuan? Hubungi Admin</span>
                     </div>
@@ -141,5 +161,568 @@
                 </footer>
             </main>
         </div>
+
+        <script>
+            (function () {
+                var mainEl = document.getElementById('guest-layout');
+                if (!mainEl) return;
+
+                function fitToViewport() {
+                    mainEl.style.transform = '';
+                    mainEl.style.transformOrigin = '';
+                    mainEl.style.marginLeft = '';
+                    mainEl.style.marginRight = '';
+
+                    var viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+                    var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+                    var contentHeight = mainEl.scrollHeight;
+                    var contentWidth = mainEl.scrollWidth;
+
+                    if (!viewportHeight || !viewportWidth) {
+                        return;
+                    }
+
+                    var safePadding = 12;
+                    var scaleH = (viewportHeight - safePadding) / Math.max(contentHeight, 1);
+                    var scaleW = (viewportWidth - safePadding) / Math.max(contentWidth, 1);
+                    var scale = Math.min(1, scaleH, scaleW);
+
+                    if (scale >= 1) {
+                        return;
+                    }
+
+                    mainEl.style.transformOrigin = 'top center';
+                    mainEl.style.transform = 'scale(' + scale.toFixed(4) + ')';
+                    mainEl.style.marginLeft = 'auto';
+                    mainEl.style.marginRight = 'auto';
+                }
+
+                window.fitGuestLayoutToViewport = fitToViewport;
+
+                window.addEventListener('resize', function () {
+                    window.requestAnimationFrame(fitToViewport);
+                });
+                window.addEventListener('load', function () {
+                    fitToViewport();
+                    setTimeout(fitToViewport, 120);
+                    setTimeout(fitToViewport, 400);
+                });
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(fitToViewport);
+                }
+                fitToViewport();
+            })();
+        </script>
+
+        <script>
+            (function () {
+                var speakerTestBtn = document.getElementById('speaker-test-btn');
+                if (!speakerTestBtn) return;
+
+                function testSpeaker() {
+                    if (!('speechSynthesis' in window)) return;
+                    var message = 'Tes speaker. Jika Anda mendengar ini, speaker aktif.';
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                if (!('speechSynthesis' in window)) {
+                    speakerTestBtn.disabled = true;
+                    speakerTestBtn.title = 'Browser tidak mendukung text-to-speech';
+                    speakerTestBtn.setAttribute('aria-label', 'Speaker tidak didukung');
+                    return;
+                }
+
+                speakerTestBtn.addEventListener('click', function () {
+                    testSpeaker();
+                });
+            })();
+        </script>
+
+        <script>
+            (function () {
+                var forms = document.querySelectorAll('form[data-print-window="true"]');
+                if (!forms.length) return;
+
+                function submitToPrintWindow(form) {
+                    var windowName = 'printTicket_' + Date.now();
+                    var printWindow = window.open('', windowName, 'width=480,height=640');
+                    if (!printWindow) {
+                        form.submit();
+                        return;
+                    }
+                    form.setAttribute('target', windowName);
+                    form.submit();
+                    form.removeAttribute('target');
+                }
+
+                function normalizeCode(code) {
+                    var digits = String(code || '').replace(/\D/g, '');
+                    if (!digits) return '';
+                    return digits;
+                }
+
+                function stripLeadingZeros(code) {
+                    var stripped = String(code || '').replace(/^0+/, '');
+                    return stripped === '' ? '0' : stripped;
+                }
+
+                function parseInactiveUntil(raw) {
+                    var value = String(raw || '').trim();
+                    if (!value) return null;
+                    var normalized = value.replace(' ', 'T');
+                    var date = new Date(normalized);
+                    if (!Number.isNaN(date.getTime())) return date;
+                    var fallback = new Date(value);
+                    if (!Number.isNaN(fallback.getTime())) return fallback;
+                    return null;
+                }
+
+                function formatRemainingText(inactiveUntilRaw) {
+                    var inactiveUntil = parseInactiveUntil(inactiveUntilRaw);
+                    if (!inactiveUntil) return '';
+                    var now = new Date();
+                    var diffMs = inactiveUntil.getTime() - now.getTime();
+                    if (diffMs <= 0) return 'Jadwal aktif kembali sudah lewat.';
+
+                    var timeText = inactiveUntil.toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    });
+
+                    var sameDate = inactiveUntil.getFullYear() === now.getFullYear()
+                        && inactiveUntil.getMonth() === now.getMonth()
+                        && inactiveUntil.getDate() === now.getDate();
+
+                    if (sameDate) {
+                        return 'Kembali aktif Pukul ' + timeText + '.';
+                    }
+
+                    var dateText = inactiveUntil.toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                    });
+                    return 'Kembali aktif tanggal ' + dateText + ' Pukul ' + timeText + '.';
+                }
+
+                function getUnavailableDisplayBase(status) {
+                    if (status === 'REST') {
+                        return 'istirahat.';
+                    }
+                    return 'sedang tidak-aktif.';
+                }
+
+                function getCounterVoiceLabel(meta) {
+                    var rawLabel = String(
+                        meta && (meta.counter_label || meta.counter_code || meta.counter_id)
+                            ? (meta.counter_label || meta.counter_code || meta.counter_id)
+                            : ''
+                    ).trim();
+                    if (!rawLabel) return 'Loket';
+                    if (rawLabel.toLowerCase().startsWith('loket')) {
+                        var suffix = rawLabel.slice(5).trim();
+                        return suffix ? 'Loket ' + suffix : 'Loket';
+                    }
+                    return 'Loket ' + rawLabel;
+                }
+
+                function getUnavailableVoiceMessage(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    var counterVoiceLabel = getCounterVoiceLabel(meta);
+                    if (status === 'REST') {
+                        return counterVoiceLabel + ' istirahat.';
+                    }
+                    var announcement = String(meta && meta.inactive_announcement ? meta.inactive_announcement : '').trim();
+                    var voiceMessage = '';
+                    if (announcement) {
+                        var lowerAnnouncement = announcement.toLowerCase();
+                        var lowerCounterLabel = counterVoiceLabel.toLowerCase();
+                        if (lowerAnnouncement.indexOf(lowerCounterLabel) !== -1) {
+                            voiceMessage = announcement;
+                        } else {
+                            voiceMessage = counterVoiceLabel + ' ' + announcement;
+                        }
+                    } else {
+                        voiceMessage = counterVoiceLabel + ' ' + getUnavailableDisplayBase(status);
+                    }
+                    if (status === 'INACTIVE') {
+                        var remainingText = formatRemainingText(meta && meta.inactive_until ? meta.inactive_until : '');
+                        if (remainingText) {
+                            return voiceMessage + ' ' + remainingText;
+                        }
+                    }
+                    return voiceMessage;
+                }
+
+                function speakUnavailableNotice(meta) {
+                    if (!('speechSynthesis' in window)) return;
+                    var message = getUnavailableVoiceMessage(meta);
+                    if (!message) return;
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                function showUnavailableNotice(meta) {
+                    speakUnavailableNotice(meta);
+                }
+
+                function isRestStatus(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    return status === 'REST';
+                }
+
+                function speakRestQueueNotice(meta) {
+                    if (!isRestStatus(meta)) return;
+                    if (!('speechSynthesis' in window)) return;
+                    var message = getUnavailableVoiceMessage(meta);
+                    if (!message) {
+                        message = 'Loket istirahat.';
+                    }
+                    message += ' silahkan ambil antrian dan menunggu.';
+                    var utter = new SpeechSynthesisUtterance(message);
+                    utter.lang = 'id-ID';
+                    utter.rate = 1;
+                    utter.pitch = 1;
+                    utter.volume = 1;
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.speak(utter);
+                }
+
+                function isCounterAvailable(meta) {
+                    var status = String(meta && meta.staff_status ? meta.staff_status : '').toUpperCase();
+                    if (status === 'ACTIVE' || status === 'REST') return true;
+                    if (status === 'INACTIVE') {
+                        var inactiveUntil = parseInactiveUntil(meta && meta.inactive_until ? meta.inactive_until : '');
+                        if (inactiveUntil && inactiveUntil.getTime() <= Date.now()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                var formsByCounterId = {};
+                var formsByCounterCode = {};
+                var formsByCounterCodeTrim = {};
+                var counterMetaById = {};
+
+                function addFormByCode(code, form) {
+                    var normalized = normalizeCode(code);
+                    if (!normalized) return;
+                    if (!formsByCounterCode[normalized]) {
+                        formsByCounterCode[normalized] = form;
+                    }
+                    var trimmed = stripLeadingZeros(normalized);
+                    if (!formsByCounterCodeTrim[trimmed]) {
+                        formsByCounterCodeTrim[trimmed] = form;
+                    }
+                }
+
+                function setCounterMeta(counterId, partialMeta) {
+                    if (!counterId) return;
+                    var existing = counterMetaById[counterId] || {};
+                    var merged = {
+                        staff_status: partialMeta && partialMeta.staff_status ? String(partialMeta.staff_status).toUpperCase() : (existing.staff_status || 'INACTIVE'),
+                        inactive_until: partialMeta && typeof partialMeta.inactive_until !== 'undefined' ? String(partialMeta.inactive_until || '') : (existing.inactive_until || ''),
+                        inactive_announcement: partialMeta && typeof partialMeta.inactive_announcement !== 'undefined' ? String(partialMeta.inactive_announcement || '').trim() : (existing.inactive_announcement || ''),
+                        counter_code: partialMeta && typeof partialMeta.counter_code !== 'undefined' ? String(partialMeta.counter_code || '').trim() : (existing.counter_code || ''),
+                        counter_label: partialMeta && typeof partialMeta.counter_label !== 'undefined' ? String(partialMeta.counter_label || '').trim() : (existing.counter_label || ''),
+                        counter_id: String(counterId || (partialMeta && partialMeta.counter_id ? partialMeta.counter_id : existing.counter_id || '')).trim(),
+                    };
+                    counterMetaById[counterId] = merged;
+                    applyCounterAvailability(counterId);
+                }
+
+                function applyCounterAvailability(counterId) {
+                    if (!counterId) return;
+                    var form = formsByCounterId[counterId];
+                    var meta = counterMetaById[counterId] || {};
+                    var available = isCounterAvailable(meta);
+                    if (!form) return;
+                    var submitButton = form.querySelector('button[type="submit"]');
+                    if (!submitButton) return;
+
+                    submitButton.disabled = !available;
+                    submitButton.classList.toggle('cursor-not-allowed', !available);
+                    submitButton.classList.toggle('opacity-80', !available);
+                    submitButton.classList.toggle('hover:-translate-y-1', available);
+                    submitButton.classList.toggle('hover:border-brand-200', available);
+                    submitButton.classList.toggle('hover:shadow-soft', available);
+                }
+
+                forms.forEach(function (form) {
+                    var counterId = form.getAttribute('data-counter-id');
+                    var rawCode = form.getAttribute('data-counter-code');
+                    if (counterId) {
+                        formsByCounterId[counterId] = form;
+                        setCounterMeta(counterId, {
+                            staff_status: form.getAttribute('data-staff-status'),
+                            inactive_until: form.getAttribute('data-inactive-until'),
+                            inactive_announcement: form.getAttribute('data-inactive-announcement'),
+                            counter_code: rawCode,
+                            counter_label: form.getAttribute('data-counter-label'),
+                        });
+                    }
+                    addFormByCode(rawCode, form);
+
+                    form.addEventListener('submit', function (event) {
+                        var meta = counterMetaById[counterId] || {};
+                        if (!isCounterAvailable(meta)) {
+                            event.preventDefault();
+                            showUnavailableNotice(meta);
+                            return;
+                        }
+                        event.preventDefault();
+                        speakRestQueueNotice(meta);
+                        submitToPrintWindow(form);
+                    });
+                });
+
+                var keyBuffer = '';
+                var keyTimer = null;
+                var submitDelay = 1000;
+                var maxDigits = 3;
+
+                function clearKeyBuffer() {
+                    keyBuffer = '';
+                    if (keyTimer) {
+                        clearTimeout(keyTimer);
+                        keyTimer = null;
+                    }
+                }
+
+                function findFormByCode(code) {
+                    if (!code) return null;
+                    if (formsByCounterCode[code]) return formsByCounterCode[code];
+                    var trimmed = stripLeadingZeros(code);
+                    if (formsByCounterCodeTrim[trimmed]) return formsByCounterCodeTrim[trimmed];
+                    return null;
+                }
+
+                function finalizeKeyBuffer() {
+                    var code = keyBuffer;
+                    clearKeyBuffer();
+                    if (!code) return;
+                    var form = findFormByCode(code);
+                    if (form) {
+                        var counterId = form.getAttribute('data-counter-id');
+                        var meta = counterMetaById[counterId] || {};
+                        if (!isCounterAvailable(meta)) {
+                            showUnavailableNotice(meta);
+                            return;
+                        }
+                        speakRestQueueNotice(meta);
+                        submitToPrintWindow(form);
+                    }
+                }
+
+                function isTypingInInput(target) {
+                    if (!target) return false;
+                    var tag = String(target.tagName || '').toLowerCase();
+                    return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
+                }
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.defaultPrevented) return;
+                    if (isTypingInInput(event.target)) return;
+
+                    var key = event.key;
+                    if (key === 'Escape') {
+                        clearKeyBuffer();
+                        return;
+                    }
+                    if (key === 'Enter') {
+                        finalizeKeyBuffer();
+                        return;
+                    }
+                    if (!/^\d$/.test(key)) {
+                        return;
+                    }
+
+                    keyBuffer += key;
+                    if (keyBuffer.length > maxDigits) {
+                        keyBuffer = keyBuffer.slice(-maxDigits);
+                    }
+                    if (keyTimer) clearTimeout(keyTimer);
+                    keyTimer = setTimeout(finalizeKeyBuffer, submitDelay);
+                });
+
+                window.updateGuestCounterStates = function (guestCounters) {
+                    if (!guestCounters || !guestCounters.length) return;
+
+                    guestCounters.forEach(function (counter) {
+                        var counterId = counter && counter.counter_id ? String(counter.counter_id) : '';
+                        if (!counterId) return;
+
+                        setCounterMeta(counterId, {
+                            staff_status: counter.staff_status,
+                            inactive_until: counter.inactive_until,
+                            inactive_announcement: counter.inactive_announcement,
+                            counter_code: counter.counter_code,
+                            counter_label: counter.counter_label,
+                        });
+
+                        var form = formsByCounterId[counterId];
+                        if (!form) return;
+
+                        form.setAttribute('data-staff-status', String(counter.staff_status || ''));
+                        form.setAttribute('data-inactive-until', String(counter.inactive_until || ''));
+                        form.setAttribute('data-inactive-announcement', String(counter.inactive_announcement || ''));
+                        if (typeof counter.counter_code !== 'undefined') {
+                            var rawCode = String(counter.counter_code || '');
+                            form.setAttribute('data-counter-code', rawCode);
+                            addFormByCode(rawCode, form);
+                        }
+                        if (typeof counter.counter_label !== 'undefined') {
+                            form.setAttribute('data-counter-label', String(counter.counter_label || ''));
+                        }
+                    });
+                };
+            })();
+        </script>
+
+        <script>
+            (function () {
+                var storeId = Number(document.body.getAttribute('data-store-id') || 0);
+                if (!storeId) return;
+
+                var reconnectDelay = 2000;
+                var pollIntervalMs = 5000;
+                var pollTimeoutMs = 1500;
+                var pollTimer = null;
+                var isPolling = false;
+                var wsConnected = false;
+                var ws;
+
+                function renderGuestCounters(guestCounters) {
+                    if (!guestCounters || !guestCounters.length) return;
+                    guestCounters.forEach(function (counter) {
+                        var counterId = counter && counter.counter_id ? String(counter.counter_id) : '';
+                        if (!counterId) return;
+                        var el = document.querySelector('[data-waiting-counter-id="' + counterId + '"]');
+                        if (!el) return;
+                        var waiting = counter && typeof counter.waiting_count !== 'undefined' ? counter.waiting_count : '-';
+                        el.textContent = waiting;
+                    });
+                    if (typeof window.updateGuestCounterStates === 'function') {
+                        window.updateGuestCounterStates(guestCounters);
+                    }
+                }
+
+                function fetchGuestCounters() {
+                    if (isPolling) return;
+                    isPolling = true;
+                    var timeoutId = null;
+                    var controller = null;
+                    if (typeof AbortController !== 'undefined') {
+                        controller = new AbortController();
+                        timeoutId = setTimeout(function () {
+                            controller.abort();
+                        }, pollTimeoutMs);
+                    }
+                    fetch('/guest/state/' + storeId, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        cache: 'no-store',
+                        signal: controller ? controller.signal : undefined,
+                    })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('HTTP ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(function (payload) {
+                            if (!payload || payload.ok !== true) return;
+                            renderGuestCounters(payload.counters || []);
+                        })
+                        .catch(function () {
+                        })
+                        .finally(function () {
+                            if (timeoutId) {
+                                clearTimeout(timeoutId);
+                            }
+                            isPolling = false;
+                        });
+                }
+
+                function startPolling(triggerNow) {
+                    if (pollTimer) return;
+                    if (triggerNow) {
+                        fetchGuestCounters();
+                    }
+                    pollTimer = setInterval(fetchGuestCounters, pollIntervalMs);
+                }
+
+                function stopPolling() {
+                    if (!pollTimer) return;
+                    clearInterval(pollTimer);
+                    pollTimer = null;
+                }
+
+                function connectWS() {
+                    var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    var wsUrl = protocol + '//' + window.location.host + '/ws/view-queue/' + storeId;
+                    ws = new WebSocket(wsUrl);
+
+                    ws.onopen = function () {
+                        wsConnected = true;
+                        stopPolling();
+                        fetchGuestCounters();
+                    };
+
+                    ws.onmessage = function (event) {
+                        var payload;
+                        try {
+                            payload = JSON.parse(event.data);
+                        } catch (e) {
+                            return;
+                        }
+                        if (!payload || payload.type !== 'queue_update') return;
+                        renderGuestCounters(payload.guest_counters || []);
+                    };
+
+                    ws.onerror = function () {
+                        try {
+                            ws.close();
+                        } catch (e) {
+                        }
+                    };
+
+                    ws.onclose = function () {
+                        wsConnected = false;
+                        if (!document.hidden) {
+                            startPolling(true);
+                        }
+                        setTimeout(connectWS, reconnectDelay);
+                    };
+                }
+
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden) {
+                        stopPolling();
+                        return;
+                    }
+                    if (!wsConnected) {
+                        startPolling(true);
+                    }
+                });
+
+                connectWS();
+                fetchGuestCounters();
+            })();
+        </script>
     </body>
 </html>

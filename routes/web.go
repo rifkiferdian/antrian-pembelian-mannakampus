@@ -16,6 +16,7 @@ func RegisterWebRoutes(r *gin.Engine) {
 	r.POST("/register", controllers.CreateUser)
 	r.GET("/logout", controllers.Logout)
 	r.GET("/guest/:store_id", controllers.GuestQueuePage)
+	r.GET("/guest/state/:store_id", controllers.GuestQueueState)
 	r.POST("/guest/ticket", controllers.GuestQueuePrint)
 	r.GET("/guest/ticket/:id", controllers.GuestTicketShow)
 

@@ -99,7 +99,7 @@ func ViewQueueV2Page(c *gin.Context) {
 		return
 	}
 	for i := range guestCounters {
-		guestCounters[i].IndexLabel = "Loket " + strconv.Itoa(i+1)
+		guestCounters[i].IndexLabel = formatCounterLabel(guestCounters[i].CounterCode, i)
 		if len(guestCounters[i].StaffNames) == 0 {
 			guestCounters[i].StaffNames = []string{"-"}
 		}

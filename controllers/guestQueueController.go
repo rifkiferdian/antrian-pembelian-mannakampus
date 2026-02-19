@@ -52,7 +52,7 @@ func GuestQueuePage(c *gin.Context) {
 	}
 
 	for i := range counters {
-		counters[i].IndexLabel = "Loket " + strconv.Itoa(i+1)
+		counters[i].IndexLabel = formatCounterLabel(counters[i].CounterCode, i)
 		if len(counters[i].StaffNames) == 0 {
 			counters[i].StaffNames = []string{"-"}
 		}
@@ -107,6 +107,45 @@ func GuestQueuePrint(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusSeeOther, "/guest/ticket/"+strconv.FormatInt(ticket.ID, 10))
+}
+
+func GuestQueueState(c *gin.Context) {
+	storeRepo := &repositories.StoreRepository{DB: config.DB}
+
+	storeID, _ := strconv.Atoi(strings.TrimSpace(c.Param("store_id")))
+	if storeID <= 0 {
+		store, err := storeRepo.GetFirstActive()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": err.Error()})
+			return
+		}
+		storeID = store.StoreID
+	} else {
+		if _, err := storeRepo.GetByID(storeID); err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"ok": false, "message": "store tidak ditemukan"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": err.Error()})
+			return
+		}
+	}
+
+	repo := &repositories.GuestQueueRepository{DB: config.DB}
+	today := time.Now()
+	counters, err := repo.GetCountersForGuest(storeID, today)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"ok": false, "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"ok":       true,
+		"store_id": storeID,
+		"counters": counters,
+		"date":     today.Format("2006-01-02"),
+		"time":     today.Format("15:04:05"),
+	})
 }
 
 func GuestTicketShow(c *gin.Context) {
