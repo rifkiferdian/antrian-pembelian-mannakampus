@@ -89,7 +89,7 @@ func (r *GuestQueueRepository) GetCountersForGuest(storeID int, ticketDate time.
 			) AS waiting_count
 		FROM counters c
 		LEFT JOIN service_categories sc ON sc.ticket_prefix = c.ticket_prefix
-		LEFT JOIN counter_staffs cs ON cs.counter_id = c.id AND cs.status IN ('ACTIVE', 'REST')
+		LEFT JOIN counter_staffs cs ON cs.counter_id = c.id AND cs.status IN ('ACTIVE', 'REST', 'INACTIVE')
 		LEFT JOIN users u ON u.id = cs.user_id
 		WHERE c.store_id = ? AND c.is_active = 1
 		GROUP BY c.id, c.counter_name, c.counter_code, c.ticket_prefix, sc.category_name
