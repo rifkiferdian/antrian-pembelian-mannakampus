@@ -417,6 +417,10 @@
                     });
                 }
 
+                function canServeQueueByStatus(status) {
+                    return status === 'ACTIVE' || status === 'INACTIVE';
+                }
+
                 function toggleClasses(el, addList, removeList) {
                     if (!el) return;
                     if (removeList && removeList.length) {
@@ -483,7 +487,7 @@
                         }
                     }
 
-                    setQueueButtonsEnabled(status === 'ACTIVE');
+                    setQueueButtonsEnabled(canServeQueueByStatus(status));
                 }
 
                 function setStatusButtonsLoading(isLoading) {
@@ -827,7 +831,7 @@
                         notify('warning', 'Pilih loket terlebih dahulu');
                         return;
                     }
-                    if (currentStaffStatus !== 'ACTIVE') {
+                    if (!canServeQueueByStatus(currentStaffStatus)) {
                         notify('warning', getStaffUnavailableMessage());
                         return;
                     }
